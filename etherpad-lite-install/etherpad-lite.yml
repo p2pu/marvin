@@ -1,0 +1,82 @@
+---
+# This playbook sets up etherpad-lite on a server.
+# pass the hosts to install to as an extra variable
+
+- hosts: $hosts
+  user: user
+  sudo: yes
+  tasks:
+  - name: get sensitive data
+    passwords: site_config
+  - name: Install required software packages
+    apt: pkg=$item state=installed
+    with_items:
+    - git
+    - mysql-server
+    - mysql-client
+    - python-mysqldb
+
+  - name: install python-software-properties
+    apt: pkg=python-software-properties state=installed
+
+  - name: add nodejs ppa repository
+    apt_repository: repo=ppa:chris-lea/node.js
+    notify:
+    - update apt cache
+
+  - name: install nodejs and npm
+    apt: pkg=$item state=installed
+    with_items:
+    - nodejs
+    - npm
+
+  - name: add nginx ppa repository
+    apt_repository: repo=ppa:nginx/stable
+    notify:
+    - update apt cache
+
+  - name: install nginx
+    apt: pkg=nginx state=installed
+
+  - name: create etherpad-lite database
+    mysql_db: name=epl encoding=utf8
+
+  - name: create etherpad-lite mysql user
+    mysql_user: name=epl password=12345 priv=epl.*:ALL state=present
+
+  - name: create etherpad-lite user
+    user: name=etherpad-lite
+
+  - name: check out etherpad-lite code
+    git: repo=https://github.com/ether/etherpad-lite.git dest=/opt/etherpad-lite
+
+  - name: update permissions for etherpad-lite directory
+    command: /bin/chown -R etherpad-lite:etherpad-lite /opt/etherpad-lite
+
+  - name: create log directory
+    file: path=/var/log/etherpad-lite owner=etherpad-lite group=etherpad-lite state=directory
+
+  - name: create etherpad-lite startup script
+    template: src=templates/etc_init_etherpad-lite.conf.j2 dest=/etc/init/etherpad-lite.conf mode=0644
+    notify:
+    - restart etherpad-lite
+
+  - name: configure etherpad-lite
+    template: src=templates/opt_etherpad-lite_settings.json.j2 dest=/opt/etherpad-lite/settings.json
+    notify:
+    - restart etherpad-lite
+
+  - name: configure nginx to forward http traffic to etherpad-lite
+    template: src=templates/etc_nginx_sites-available_default.j2 dest=/etc/nginx/sites-available/default
+    notify:
+    - restart nginx
+
+  handlers:
+  - name: restart etherpad-lite
+    service: name=etherpad-lite state=restarted
+
+  - name: restart nginx
+    service: name=nginx state=restarted
+
+  - name: update apt cache
+    apt: update-cache=yes

@@ -1,0 +1,13 @@
+upstream etherpad-lite {
+    server 127.0.0.1:9001;
+}
+
+server {
+    listen 80 default_server;
+    location / {
+        proxy_buffering off;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_pass http://etherpad-lite;
+    }
+}

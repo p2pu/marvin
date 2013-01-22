@@ -39,7 +39,7 @@
     apt: pkg=nginx state=installed
 
   - name: create etherpad-lite database
-    mysql_db: name=epl encoding=utf8
+    mysql_db: name=epl encoding=utf8 state=present
 
   - name: create etherpad-lite mysql user
     mysql_user: name=epl password=12345 priv=epl.*:ALL state=present

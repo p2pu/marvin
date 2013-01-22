@@ -62,7 +62,7 @@
     - restart etherpad-lite
 
   - name: configure etherpad-lite
-    template: src=templates/opt_etherpad-lite_settings.json.j2 dest=/opt/etherpad-lite/settings.json
+    template: src=templates/opt_etherpad-lite_settings.json.j2 dest=/opt/etherpad-lite/settings.json mode=0640
     notify:
     - restart etherpad-lite
 

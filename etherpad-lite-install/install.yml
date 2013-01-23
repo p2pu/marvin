@@ -6,8 +6,7 @@
   user: user
   sudo: yes
   tasks:
-  - name: get sensitive data
-    passwords: site_config
+
   - name: Install required software packages
     apt: pkg=$item state=installed
     with_items:

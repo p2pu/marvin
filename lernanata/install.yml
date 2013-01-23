@@ -33,6 +33,7 @@
     - swig
     - apache2
     - libapache2-mod-wsgi
+    - rabbitmq-server
 
   - name: create lernanta user
     user: name=lernanta
@@ -44,10 +45,10 @@
     command: /bin/chown -R lernanta:lernanta /opt/lernanta
 
   - name: create lernanta.log and set permissions
-    file: path:/opt/lernanta/lernanta/lernanta.log state=file user=lernanta group=www-data mode=0664
+    file: path=/opt/lernanta/lernanta/lernanta.log state=file owner=lernanta group=www-data mode=0664
 
   - name: create static_serv directory
-    file: path:/opt/lernanta/lernanta/static_serv state=directory user=lernanta group=www-data mode=0775
+    file: path=/opt/lernanta/lernanta/static_serv state=directory owner=lernanta group=www-data mode=0775
 
   - name: install pip and virtuan env
     easy_install: name=$item
@@ -62,13 +63,17 @@
   - name: create python virtual environment
     command: ${virtualenv.stdout} --system-site-packages $lernanta_venv
 
-  - name: install lernanta dependancies
+  - name: install lernanta dependancies in virtual environment
     pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
 
   - name: configure lernanta settings_local.py
-    template: src=templates/opt_lernanta_lernanta_settings_local.py.j2 dest=/opt/lernanta/lernanta/settings_local.py mode=0640
-# TODO set permission for this file so that apache can read it!
-# TODO set permission for media directory so that apache can write to it
+    template: src=templates/opt_lernanta_lernanta_settings_local.py.j2 dest=/opt/lernanta/lernanta/settings_local.py mode=0640 owner=lernanta group=www-data
+
+  - name: set permissions for media directory so that apache can write to it
+    command: /bin/chown -R lernanta:www-data /opt/lernanta/lernanta/media
+
+  - name: set mode for media directory
+    command: /bin/chmod 0775 /opt/lernanta/lernanta/media
 
   - name: configure lernanta wsgi script
     template: src=templates/opt_lernanta_lernanta_wsgi_production.wsgi.j2 dest=/opt/lernanta/lernanta/wsgi/production.wsgi
@@ -77,12 +82,28 @@
     mysql_db: name=$lernanta_db_name encoding=utf8 state=present
 
   - name: create lernanta mysql user
-    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=$lernanta_db_name.*:ALL state=present
+    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=${lernanta_db_name}.*:ALL state=present
 
   - name: run syncdb
     command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py syncdb --noinput
 
-#TODO  - name: create correct values in sites table
+  # TODO: The following two steps should probably be corrected in the lernanta code, not here.
+  - name: copy sql script to create site entry in database
+    copy: src=files/django_site.sql dest=/tmp/django_site.sql
+
+  - name: create correct values in sites table
+    mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
+
+  - name: create rabbitmq user
+    command: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
+    
+  - name: add rabbitmq vhost
+    command: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
+
+  - name: set permissions for rabbitmq queue
+    command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
+
+  # TODO: setup celerybeat service
 
   - name: run collectstatic
     command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
@@ -99,7 +120,7 @@
     - restart apache
 
 #  - name: copy ssl certificate files
-#    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0640
+#    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0600
 #    with_items:
 #    - certificate.crt
 #    - p2pu.org.key

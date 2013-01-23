@@ -181,3 +181,8 @@ SSO_EXTERNAL_REDIRECTS = {
 STATSD_HOST = 'stats.p2pu.org'
 STATSD_PORT = 8125
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@p2pu.org'
+EMAIL_HOST='smtp.sendgrid.net'
+EMAIL_HOST_PASSWORD='{{lernanta_smtp_password}}'
+EMAIL_HOST_USER="admin@p2pu.org"

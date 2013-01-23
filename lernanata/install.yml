@@ -1,0 +1,115 @@
+---
+# This playbook sets up lernanta on a server.
+# pass the hosts to install to as an extra variable
+
+- hosts: $hosts
+  user: user
+  sudo: yes
+  vars:
+    lernanta_venv: /opt/lernanta/virtualenv
+  vars_files:
+  - vars/credentials.yml
+  tasks:
+
+  - name: Update apt packages
+    apt: update-cache=yes
+
+  - name: Install required software packages
+    apt: pkg=$item state=installed
+    with_items:
+    - git
+    - mysql-server
+    - mysql-client
+    - python-mysqldb
+    - python-dev
+    - python-setuptools
+    - python-lxml
+    - libssl-dev
+    - python-imaging
+    - python-m2crypto
+    - gettext
+    - python-iso8601
+    - make
+    - swig
+    - apache2
+    - libapache2-mod-wsgi
+
+  - name: create lernanta user
+    user: name=lernanta
+
+  - name: check out lernanta code
+    git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta
+
+  - name: update permissions for lernanta directory
+    command: /bin/chown -R lernanta:lernanta /opt/lernanta
+
+  - name: create lernanta.log and set permissions
+    file: path:/opt/lernanta/lernanta/lernanta.log state=file user=lernanta group=www-data mode=0664
+
+  - name: create static_serv directory
+    file: path:/opt/lernanta/lernanta/static_serv state=directory user=lernanta group=www-data mode=0775
+
+  - name: install pip and virtuan env
+    easy_install: name=$item
+    with_items:
+    - pip
+    - virtualenv
+
+  - name: get path for virtuanenv
+    command: /usr/bin/which virtualenv
+    register: virtualenv
+
+  - name: create python virtual environment
+    command: ${virtualenv.stdout} --system-site-packages $lernanta_venv
+
+  - name: install lernanta dependancies
+    pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
+
+  - name: configure lernanta settings_local.py
+    template: src=templates/opt_lernanta_lernanta_settings_local.py.j2 dest=/opt/lernanta/lernanta/settings_local.py mode=0640
+# TODO set permission for this file so that apache can read it!
+# TODO set permission for media directory so that apache can write to it
+
+  - name: configure lernanta wsgi script
+    template: src=templates/opt_lernanta_lernanta_wsgi_production.wsgi.j2 dest=/opt/lernanta/lernanta/wsgi/production.wsgi
+
+  - name: create lernanta database
+    mysql_db: name=$lernanta_db_name encoding=utf8 state=present
+
+  - name: create lernanta mysql user
+    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=$lernanta_db_name.*:ALL state=present
+
+  - name: run syncdb
+    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py syncdb --noinput
+
+#TODO  - name: create correct values in sites table
+
+  - name: run collectstatic
+    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
+
+  - name: configure lernanta vhost
+    template: src=templates/etc_apache2_sites-available_lernanta.j2 dest=/etc/apache2/sites-available/lernanta
+
+#  - name: configure lernanta-ssl vhost
+#    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
+
+  - name: enable mod rewrite and ssl
+    command: /usr/sbin/a2enmod rewrite ssl
+    notify:
+    - restart apache
+
+#  - name: copy ssl certificate files
+#    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0640
+#    with_items:
+#    - certificate.crt
+#    - p2pu.org.key
+#    - intermediate.crt
+
+  - name: enable lernanta vhost
+    command: /usr/sbin/a2ensite lernanta lernanta-ssl
+    notify:
+    - restart apache
+
+  handlers:
+  - name: restart apache
+    service: name=apache2 state=restarted

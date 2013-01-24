@@ -1,5 +1,4 @@
-ehterpad-lite
-=============
+# Ehterpad Lite
 
 This playbook will install Etherpad Lite on an Ubuntu Server 12.04 x86 using [ansible](http://ansible.cc).
 
@@ -14,5 +13,5 @@ To get started follow these steps:
  1. install Ubuntu Server 12.04 x86.
  1. install ssh: 'apt-get install ssh'
  1. copy your public rsa key to the server: "scp -p ~/.ssh/id_rsa.pub user@192.168.1.6:.ssh/authorized_keys"
- 1. run the playbook: 'ansible-playbook etherpad-lite.yml --extra-vars "hosts=192.168.1.6" -K'
+ 1. run the playbook: 'ansible-playbook install.yml --extra-vars "hosts=192.168.1.6" -K'
  1. sit back and relax :)

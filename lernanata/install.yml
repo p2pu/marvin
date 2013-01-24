@@ -44,7 +44,10 @@
   - name: update permissions for lernanta directory
     command: /bin/chown -R lernanta:lernanta /opt/lernanta
 
-  - name: create lernanta.log and set permissions
+  - name: create lernanta.log file
+    command: /usr/bin/touch /opt/lernanta/lernanta/lernanta.log
+
+  - name: set permissions for lernanta.log
     file: path=/opt/lernanta/lernanta/lernanta.log state=file owner=lernanta group=www-data mode=0664
 
   - name: create static_serv directory
@@ -94,11 +97,14 @@
   - name: create correct values in sites table
     mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
 
+  # TODO 'ignore_errors: yes' will suppress ligitimate errors!
   - name: create rabbitmq user
-    command: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
+    shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
+    ignore_errors: yes
     
   - name: add rabbitmq vhost
-    command: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
+    shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
+    ignore_errors: yes
 
   - name: set permissions for rabbitmq queue
     command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
@@ -111,19 +117,22 @@
   - name: configure lernanta vhost
     template: src=templates/etc_apache2_sites-available_lernanta.j2 dest=/etc/apache2/sites-available/lernanta
 
-#  - name: configure lernanta-ssl vhost
-#    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
+  - name: configure lernanta-ssl vhost
+    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
 
   - name: enable mod rewrite and ssl
     command: /usr/sbin/a2enmod rewrite ssl
     notify:
     - restart apache
 
-#  - name: copy ssl certificate files
-#    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0600
-#    with_items:
-#    - certificate.crt
-#    - p2pu.org.key
+  - name: create ssl directory
+    file: path=/etc/apache2/ssl state=directory
+
+  - name: copy ssl certificate files
+    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0600
+    with_items:
+    - certificate.crt
+    - p2pu.org.key
 #    - intermediate.crt
 
   - name: enable lernanta vhost

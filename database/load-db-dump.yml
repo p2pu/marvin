@@ -1,0 +1,41 @@
+---
+# Copy an existing database to $hosts and imports it to the database.
+# The database needs to be compressed with bzip2.
+# The following extra variables needs to be passed as extra variable when running ansible-playbook:
+# - hosts : the 
+# - db_dump_path : the path to the database dump that is compressed using bzip2
+# And you need to put db_name, db_user and db_password in vars/credentials.yml
+
+- hosts: $hosts
+  user: user
+  sudo: yes
+  vars_files:
+  - vars/credentials.yml
+  tasks:
+
+  - name: blah
+    debug: msg="$db_name $db_user $db_password"
+
+  - name: stop services
+    service: name=$item state=stopped
+    with_items: $services
+
+  - name: dump database
+    mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=dump target=/tmp/$db_name_dump.sql
+
+  - name: copy existing database to remote server
+    copy: src=$db_dump_path dest=/tmp/${db_name}.sql.bz2
+
+  - name: uncompress database dump
+    command: /bin/bunzip2 /tmp/${db_name}.sql.bz2 creates=/tmp/${db_name}.sql
+
+  - name: import database
+    mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=import target=/tmp/${db_name}.sql
+
+  - name: start services
+    service: name=$item state=started
+    with_items: $services
+
+  - name: remove database dump
+    file: path=/tmp/etherpad.sql state=absent
+

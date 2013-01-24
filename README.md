@@ -1,6 +1,8 @@
 marvin
 ======
 
+<img src="http://www.deviantart.com/download/84301828/Marvin_the_Martian_by_EJJS.jpg" />
+
 Marvin helps us to manage the services that we use at P2PU using [ansible](http://ansible.cc/).
 
 The typical process of using a playbook is as follows:

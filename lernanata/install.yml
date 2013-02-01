@@ -34,6 +34,7 @@
     - apache2
     - libapache2-mod-wsgi
     - rabbitmq-server
+    - memcached
 
   - name: create lernanta user
     user: name=lernanta
@@ -66,7 +67,7 @@
   - name: create python virtual environment
     command: ${virtualenv.stdout} --system-site-packages $lernanta_venv
 
-  - name: install lernanta dependancies in virtual environment
+  - name: install lernanta dependencies in virtual environment
     pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
 
   - name: configure lernanta settings_local.py
@@ -109,7 +110,23 @@
   - name: set permissions for rabbitmq queue
     command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
 
-  # TODO: setup celerybeat service
+  - name: celeryd config
+    template: src=templates/etc_default_celeryd.j2 dest=/etc/default/celeryd
+
+  - name: celerybeat config
+    template: src=templates/etc_default_celerybeat.j2 dest=/etc/default/celerybeat
+
+  - name: copy celeryd startup script
+    copy: src=files/$item dest=/etc/init.d/$item mode=0755
+    with_items:
+    - celeryd
+    - celerybeat
+
+  - name: start celeryd services
+    service: name=celeryd state=started
+    
+  - name: start celerybeat services
+    service: name=celerybeat state=started
 
   - name: run collectstatic
     command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput

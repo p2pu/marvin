@@ -8,7 +8,7 @@
     SSLEngine on
     SSLCertificateFile /etc/apache2/ssl/certificate.crt
     SSLCertificateKeyFile /etc/apache2/ssl/p2pu.org.key
-    SSLCACertificateFile /etc/apache2/ssl/intermediate.crt
+    #SSLCACertificateFile /etc/apache2/ssl/intermediate.crt
     SetEnv HTTPS on
 
     # Possible values include: debug, info, notice, warn, error, crit,
@@ -26,7 +26,6 @@
         Order deny,allow
         Allow from all
         SetHandler None
-        AllowOverride None
     </Location>
     Alias /robots.txt /opt/lernanta/lernanta/static_serv/robots.txt
 

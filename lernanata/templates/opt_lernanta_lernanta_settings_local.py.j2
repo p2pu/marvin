@@ -72,6 +72,13 @@ TIME_ZONE = 'America/Toronto'
 # Set to True to use https
 SESSION_COOKIE_SECURE = False
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '{{lernanta_sercret_key}}'
 

@@ -3,13 +3,13 @@ import datetime
 
 # Useful settings for running a local instance of batucada.
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-
 
 # Include at least one admin who will receive the reports of abuse.
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
+    ('{{lernanta_admin_user}}', '{{lernanta_admin_email}}'),
 )
 MANAGERS = ADMINS
 ADMIN_PROJECT_CREATE_EMAIL = tuple()

@@ -3,12 +3,12 @@
 # pass the hosts to install to as an extra variable
 
 - hosts: $hosts
-  user: user
+  user: $user
   sudo: yes
   vars:
-    lernanta_venv: /opt/lernanta/virtualenv
+    lernanta_venv: "/opt/lernanta_venv/"
   vars_files:
-  - vars/credentials.yml
+  - vars/credentials_local.yml
   tasks:
 
   - name: Update apt packages

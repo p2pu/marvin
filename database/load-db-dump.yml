@@ -7,20 +7,17 @@
 # And you need to put db_name, db_user and db_password in vars/credentials.yml
 
 - hosts: $hosts
-  user: user
+  user: $user
   sudo: yes
   vars_files:
-  - vars/credentials.yml
+  - vars/credentials_local.yml
   tasks:
-
-  - name: blah
-    debug: msg="$db_name $db_user $db_password"
 
   - name: stop services
     service: name=$item state=stopped
     with_items: $services
 
-  - name: dump database
+  - name: create a backup of the current database
     mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=dump target=/tmp/$db_name_dump.sql
 
   - name: copy existing database to remote server

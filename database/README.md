@@ -9,5 +9,3 @@ The following extra variables needs to be passed as extra variable when running 
  - db_dump_path : the path to the database dump that is compressed using bzip2
  
 You need to put db_name, db_user and db_password in vars/credentials.yml
-
-

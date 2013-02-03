@@ -1,0 +1,39 @@
+---
+# This playbook deploys a new version of lernanta on a server.
+# Pass host and user as extra variables.
+
+- hosts: $host
+  user: $user
+  sudo: yes
+  vars:
+    lernanta_venv: "/opt/lernanta_venv/"
+  vars_files:
+  - vars/credentials_local.yml
+  tasks:
+
+  - name: stop apache
+    service: name=apache2 state=stopped
+
+  - name: backup database
+    mysql_db: name=$lernanta_db_name login_user=$lernanta_db_user login_password=$lernanta_db_password state=dump target=/tmp/${lernanta_db_name}_backup.sql
+
+  - name: backup static data
+    command: /usr/bin/tar czvf /tmp/static_files.tar.gz /opt/lernanta/lernanta/media
+
+  - name: update lernanta code
+    git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta version=release
+
+  - name: update lernanta dependencies in virtual environment
+    pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
+
+  - name: copy update_db sql script 
+    copy: src=files/django_site.sql dest=/tmp/django_site.sql
+
+  - name: run sql script to update database
+    mysql_db: name=$lernanta_db_name state=import target=/tmp/update_db.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
+
+  - name: run collectstatic
+    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
+
+  - name: restart apache
+    service: name=apache2 state=restarted

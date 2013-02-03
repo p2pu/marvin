@@ -17,8 +17,8 @@
   - name: backup database
     mysql_db: name=$lernanta_db_name login_user=$lernanta_db_user login_password=$lernanta_db_password state=dump target=/tmp/${lernanta_db_name}_backup.sql
 
-  - name: backup static data
-    command: /usr/bin/tar czvf /tmp/static_files.tar.gz /opt/lernanta/lernanta/media
+  - name: backup lernanta directory
+    command: /bin/tar czf /tmp/static_files.tar.gz -C /opt/ lernanta
 
   - name: update lernanta code
     git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta version=release
@@ -27,7 +27,7 @@
     pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
 
   - name: copy update_db sql script 
-    copy: src=files/django_site.sql dest=/tmp/django_site.sql
+    copy: src=files/update_db.sql dest=/tmp/update_db.sql
 
   - name: run sql script to update database
     mysql_db: name=$lernanta_db_name state=import target=/tmp/update_db.sql login_user=$lernanta_db_user login_password=$lernanta_db_password

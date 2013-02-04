@@ -18,7 +18,7 @@
     mysql_db: name=$lernanta_db_name login_user=$lernanta_db_user login_password=$lernanta_db_password state=dump target=/tmp/${lernanta_db_name}_backup.sql
 
   - name: backup lernanta directory
-    command: /bin/tar czf /tmp/static_files.tar.gz -C /opt/ lernanta
+    command: /bin/tar czf /tmp/lernanta_files.tar.gz -C /opt/ lernanta
 
   - name: update lernanta code
     git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta version=release

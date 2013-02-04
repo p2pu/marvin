@@ -1,14 +1,14 @@
 ---
 # This playbook sets up lernanta on a server.
-# pass the hosts to install to as an extra variable
+# pass the host and user as extra variables.
 
-- hosts: $hosts
+- hosts: $host
   user: $user
   sudo: yes
   vars:
     lernanta_venv: "/opt/lernanta_venv/"
   vars_files:
-  - vars/credentials_local.yml
+  - vars/credentials_${host}.yml
   tasks:
 
   - name: Update apt packages
@@ -102,7 +102,7 @@
   - name: create rabbitmq user
     shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
     ignore_errors: yes
-    
+
   - name: add rabbitmq vhost
     shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
     ignore_errors: yes
@@ -124,7 +124,7 @@
 
   - name: start celeryd services
     service: name=celeryd state=started
-    
+
   - name: start celerybeat services
     service: name=celerybeat state=started
 
@@ -146,12 +146,13 @@
     file: path=/etc/apache2/ssl state=directory
 
   - name: copy ssl certificate files
-    copy: src=files/$item dest=/etc/apache2/ssl/$item mode=0600
+    copy: src=files/$host/$item dest=/etc/apache2/ssl/$item mode=0600
     with_items:
     - certificate.crt
     - p2pu.org.key
-#    - intermediate.crt
+    - intermediate.crt
 
+  # TODO - After enabling the SSL host, Apache requires a password to start
   - name: enable lernanta vhost
     command: /usr/sbin/a2ensite lernanta lernanta-ssl
     notify:

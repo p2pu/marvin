@@ -11,6 +11,9 @@
   - vars/credentials_${host}.yml
   tasks:
 
+  - name: create backup mysql user
+    mysql_user: name=$backup_db_user password=$backup_db_password priv="*.*:SELECT,LOCK TABLES" state=present
+
   - name: Install required software packages
     apt: pkg=$item state=installed
     with_items:
@@ -34,11 +37,23 @@
   - name: Check out backup rotation code
     git: repo=https://github.com/dirkcuys/active-memory.git dest=/opt/active-memory
 
+  - name: Create backup directory for mysql
+    file: path=/opt/backup/mysql state=directory
+
+  - name: Create backup directory for media
+    file: path=/opt/backup/media state=directory
+
   - name: Copy mysql backup script to server
     copy: src=files/backup-mysql.sh dest=/opt/backup/backup-mysql.sh
         
+  - name: Copy media backup script to server
+    copy: src=files/backup-media.sh dest=/opt/backup/backup-media.sh
+        
   - name: Copy backup credentials to server
-    template: src=files/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0750 user=root group=backup
+    template: src=templates/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0750 owner=root group=backup
 
-  - name: Add cron entry to run bacup-mysql script daily at 11h00 UTC
+  - name: Add cron entry to run backup-mysql script daily at 11h00 UTC
     cron: name="backup-mysql" hour="3" minute="0" job="/opt/backup/backup-mysql.sh" state=present
+
+  - name: Add cron entry to run backup-media script daily at 12h00 UTC
+    cron: name="backup-media" hour="4" minute="0" job="/opt/backup/backup-media.sh" state=present

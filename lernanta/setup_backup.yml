@@ -1,0 +1,44 @@
+---
+# This playbook sets up backup for the server.
+# pass the host and user as extra variables.
+
+- hosts: $host
+  user: $user
+  sudo: yes
+  vars:
+    venv_path: "/opt/aws_venv/"
+  vars_files:
+  - vars/credentials_${host}.yml
+  tasks:
+
+  - name: Install required software packages
+    apt: pkg=$item state=installed
+    with_items:
+    - python-setuptools
+
+  - name: install pip and virtuan env
+    easy_install: name=$item
+    with_items:
+    - pip
+    - virtualenv
+
+  - name: create python virtual environment
+    command: /usr/bin/env virtualenv --system-site-packages $venv_path
+
+  - name: install virtual environment packages
+    pip: name=$item virtualenv=$venv_path
+    with_items:
+    - boto
+    - filechunkio
+
+  - name: Check out backup rotation code
+    git: repo=https://github.com/dirkcuys/active-memory.git dest=/opt/active-memory
+
+  - name: Copy mysql backup script to server
+    copy: src=files/backup-mysql.sh dest=/opt/backup/backup-mysql.sh
+        
+  - name: Copy backup credentials to server
+    template: src=files/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0750 user=root group=backup
+
+  - name: Add cron entry to run bacup-mysql script daily at 11h00 UTC
+    cron: name="backup-mysql" hour="3" minute="0" job="/opt/backup/backup-mysql.sh" state=present

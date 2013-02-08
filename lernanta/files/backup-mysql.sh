@@ -23,7 +23,7 @@ fi
 if [ $? -ne 0 ]
 then
   /usr/bin/env logger -t $LOG_HEADER "upload to Amazon S3 failed, keeping file!"
-  /bin/mv ${DST_FILE}.gz mysql_full-${TIMESTAMP}.sql.gz
+  /bin/mv ${DST_FILE}.gz $BACKUP_PATH/mysql_full-${TIMESTAMP}.sql.gz
   #TODO send email to sysadmin
   exit
 fi

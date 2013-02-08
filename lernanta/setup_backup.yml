@@ -44,16 +44,16 @@
     file: path=/opt/backup/media state=directory
 
   - name: Copy mysql backup script to server
-    copy: src=files/backup-mysql.sh dest=/opt/backup/backup-mysql.sh
+    copy: src=files/backup-mysql.sh dest=/opt/backup/backup-mysql.sh mode=0755
         
   - name: Copy media backup script to server
-    copy: src=files/backup-media.sh dest=/opt/backup/backup-media.sh
+    copy: src=files/backup-media.sh dest=/opt/backup/backup-media.sh mode=0755
         
   - name: Copy backup credentials to server
-    template: src=templates/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0750 owner=root group=backup
+    template: src=templates/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0640 owner=root group=backup
 
-  - name: Add cron entry to run backup-mysql script daily at 11h00 UTC
-    cron: name="backup-mysql" hour="3" minute="0" job="/opt/backup/backup-mysql.sh" state=present
+  - name: Add cron entry to run backup-mysql script daily at 9h00 UTC
+    cron: name="backup-mysql" hour="11" minute="0" job="/opt/backup/backup-mysql.sh" state=present
 
-  - name: Add cron entry to run backup-media script daily at 12h00 UTC
-    cron: name="backup-media" hour="4" minute="0" job="/opt/backup/backup-media.sh" state=present
+  - name: Add cron entry to run backup-media script daily at 10h00 UTC
+    cron: name="backup-media" hour="12" minute="0" job="/opt/backup/backup-media.sh" state=present

@@ -8,7 +8,7 @@
   vars:
     lernanta_venv: "/opt/lernanta_venv/"
   vars_files:
-  - vars/credentials_local.yml
+  - vars/credentials_${host}.yml
   tasks:
 
   - name: stop apache

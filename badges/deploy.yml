@@ -1,12 +1,12 @@
 ---
-# This playbook deploys a new version of lernanta on a server.
+# This playbook deploys a new version of badges on a server.
 # Pass host and user as extra variables.
 
 - hosts: $host
   user: $user
   sudo: yes
   vars:
-    lernanta_venv: "/opt/lernanta_venv/"
+    badges_venv: "/opt/badges_venv/"
   vars_files:
   - vars/credentials_${host}.yml
   tasks:
@@ -14,26 +14,23 @@
   - name: stop apache
     service: name=apache2 state=stopped
 
-  - name: backup database
-    mysql_db: name=$lernanta_db_name login_user=$lernanta_db_user login_password=$lernanta_db_password state=dump target=/tmp/${lernanta_db_name}_backup.sql
+  - name: backup badges directory
+    command: /bin/tar czf /tmp/badges_files.tar.gz -C /opt/ badges
 
-  - name: backup lernanta directory
-    command: /bin/tar czf /tmp/lernanta_files.tar.gz -C /opt/ lernanta
+  - name: update badges code
+    git: repo=https://github.com/p2pu/badges.git dest=/opt/badges version=HEAD
 
-  - name: update lernanta code
-    git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta version=release
+  - name: update badges dependencies in virtual environment
+    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
 
-  - name: update lernanta dependencies in virtual environment
-    pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
-
-  - name: copy update_db sql script 
-    copy: src=files/update_db.sql dest=/tmp/update_db.sql
-
-  - name: run sql script to update database
-    mysql_db: name=$lernanta_db_name state=import target=/tmp/update_db.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
+  - name: updating media files
+    command: cp -pr /opt/badges/badges/uploads/images /opt/badges/badges/media
 
   - name: run collectstatic
-    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
+
+  - name: update badges settings_local.py
+    template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
   - name: restart apache
     service: name=apache2 state=restarted

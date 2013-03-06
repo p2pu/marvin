@@ -18,23 +18,23 @@
     apt: pkg=$item state=installed
     with_items:
     - git
-    - mysql-server
-    - mysql-client
-    - python-mysqldb
+#    - mysql-server
+#    - mysql-client
+#    - python-mysqldb
     - python-dev
     - python-setuptools
-    - python-lxml
+#    - python-lxml
     - libssl-dev
-    - python-imaging
-    - python-m2crypto
+#    - python-imaging
+#    - python-m2crypto
     - gettext
     - python-iso8601
     - make
-    - swig
+#    - swig
     - apache2
     - libapache2-mod-wsgi
-    - rabbitmq-server
-    - memcached
+#    - rabbitmq-server
+#    - memcached
 
   - name: create badges user
     user: name=badges
@@ -51,13 +51,17 @@
   - name: set permissions for badges.log
     file: path=/opt/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
 
-  - name: create static_serv directory
-    file: path=/opt/badges/badges/static_serv state=directory owner=badges group=www-data mode=0775
+#  - name: create static_serv directory
+#    file: path=/opt/badges/badges/static_serv state=directory owner=badges group=www-data mode=0775
 
-  - name: install pip and virtuan env
+  - name: install pip
     easy_install: name=$item
     with_items:
     - pip
+    
+  - name: install virtualenv
+    pip: name=$item
+    with_items:    
     - virtualenv
 
   - name: get path for virtuanenv
@@ -65,7 +69,7 @@
     register: virtualenv
 
   - name: create python virtual environment
-    command: ${virtualenv.stdout} --system-site-packages $badges_venv
+    command: ${virtualenv.stdout} --distribute $badges_venv
 
   - name: install badges dependencies in virtual environment
     pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
@@ -79,8 +83,8 @@
   - name: set mode for media directory
     command: /bin/chmod 0775 /opt/badges/badges/media
 
-#  - name: configure badges wsgi script
-#    template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/wsgi/production.wsgi
+  - name: configure badges wsgi script
+    template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
 
 #  - name: create lernanta database
 #    mysql_db: name=$lernanta_db_name encoding=utf8 state=present
@@ -93,6 +97,10 @@
 
   - name: import testdata
     command: $badges_venv/bin/python /opt/badges/badges/manage.py load_test_data /opt/badges/testdata/test_data.json 
+
+  - name: copy uploads images to media
+    command: cp -pr /opt/badges/badges/uploads/images /opt/badges/badges/media
+
 
   # TODO: The following two steps should probably be corrected in the lernanta code, not here.
 #  - name: copy sql script to create site entry in database
@@ -135,10 +143,10 @@
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
   
   - name: copy robots.txt
-    copy: src=files/robots.txt dest=/opt/badges/badges/static_serv/robots.txt mode=0644
+    copy: src=files/robots.txt dest=/opt/badges/badges/staticfiles/robots.txt mode=0644
 
   - name: configure badges vhost
-    template: src=templates/etc_apache2_sites-available_lernanta.j2 dest=/etc/apache2/sites-available/lernanta
+    template: src=templates/etc_apache2_sites-available_badges.j2 dest=/etc/apache2/sites-available/badges
 
 #  - name: configure lernanta-ssl vhost
 #    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
@@ -159,6 +167,12 @@
 #    - intermediate.crt
 
   # TODO - After enabling the SSL host, Apache requires a password to start
+  - name: disable 000-default vhost
+    command: /usr/sbin/a2dissite 000-default
+    ignore_errors: yes
+    notify:
+    - restart apache
+
   - name: enable badges vhost
     command: /usr/sbin/a2ensite badges #badges-ssl
     notify:

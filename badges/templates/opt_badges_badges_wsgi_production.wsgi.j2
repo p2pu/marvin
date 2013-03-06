@@ -14,6 +14,14 @@ framework.
 
 """
 import os
+import site
+
+activate_this = '{{ badges_venv }}/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+wsgidir = os.path.dirname(__file__)
+site.addsitedir(os.path.abspath(os.path.join(wsgidir, '../')))
+site.addsitedir(os.path.abspath(os.path.join(wsgidir, '../../')))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "badges.settings_local")
 

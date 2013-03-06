@@ -20,7 +20,7 @@
         Allow from all
         SetHandler None
     </Location>
-    Alias /robots.txt /opt/badges/badges/static_serv/robots.txt
+    Alias /robots.txt /opt/badges/badges/staticfiles/robots.txt
 
     # force all content to be served as static files
     # otherwise django will be crunching images through itself wasting time
@@ -32,8 +32,8 @@
         AllowOverride None
     </Directory>
 
-    Alias /static/ "/opt/badges/badges/static_serv/"
-    <Directory "/opt/badges/badges/static_serv">
+    Alias /static/ "/opt/badges/badges/staticfiles/"
+    <Directory "/opt/badges/badges/staticfiles">
         Order deny,allow
         Allow from all
         Options MultiViews FollowSymLinks
@@ -49,6 +49,6 @@
     </Directory>
 
     #this is your wsgi script described in the prev section
-    WSGIScriptAlias / /opt/badges/badges/badges/wsgi.wsgi
+    WSGIScriptAlias / /opt/badges/badges/badges/production.py
 </VirtualHost>
 

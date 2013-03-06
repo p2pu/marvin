@@ -18,23 +18,14 @@
     apt: pkg=$item state=installed
     with_items:
     - git
-#    - mysql-server
-#    - mysql-client
-#    - python-mysqldb
     - python-dev
     - python-setuptools
-#    - python-lxml
     - libssl-dev
-#    - python-imaging
-#    - python-m2crypto
     - gettext
     - python-iso8601
     - make
-#    - swig
     - apache2
     - libapache2-mod-wsgi
-#    - rabbitmq-server
-#    - memcached
 
   - name: create badges user
     user: name=badges
@@ -51,14 +42,11 @@
   - name: set permissions for badges.log
     file: path=/opt/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
 
-#  - name: create static_serv directory
-#    file: path=/opt/badges/badges/static_serv state=directory owner=badges group=www-data mode=0775
-
   - name: install pip
     easy_install: name=$item
     with_items:
     - pip
-    
+
   - name: install virtualenv
     pip: name=$item
     with_items:    
@@ -86,12 +74,6 @@
   - name: configure badges wsgi script
     template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
 
-#  - name: create lernanta database
-#    mysql_db: name=$lernanta_db_name encoding=utf8 state=present
-
-#  - name: create lernanta mysql user
-#    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=${lernanta_db_name}.*:ALL state=present
-
   - name: run syncdb
     command: $badges_venv/bin/python /opt/badges/badges/manage.py syncdb --noinput
 
@@ -101,72 +83,15 @@
   - name: copy uploads images to media
     command: cp -pr /opt/badges/badges/uploads/images /opt/badges/badges/media
 
-
-  # TODO: The following two steps should probably be corrected in the lernanta code, not here.
-#  - name: copy sql script to create site entry in database
-#    copy: src=files/django_site.sql dest=/tmp/django_site.sql
-
-#  - name: create correct values in sites table
-#    mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
-
-  # TODO 'ignore_errors: yes' will suppress ligitimate errors!
-#  - name: create rabbitmq user
-#    shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
-#    ignore_errors: yes
-
-#  - name: add rabbitmq vhost
-#    shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
-#    ignore_errors: yes
-
-#  - name: set permissions for rabbitmq queue
-#    command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
-
-#  - name: celeryd config
-#    template: src=templates/etc_default_celeryd.j2 dest=/etc/default/celeryd
-
-#  - name: celerybeat config
-#    template: src=templates/etc_default_celerybeat.j2 dest=/etc/default/celerybeat
-
-#  - name: copy celeryd startup script
-#    copy: src=files/$item dest=/etc/init.d/$item mode=0755
-#    with_items:
-#    - celeryd
-#    - celerybeat
-
-#  - name: start celeryd services
-#    service: name=celeryd state=started
-
-#  - name: start celerybeat services
-#    service: name=celerybeat state=started
-
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
-  
+
   - name: copy robots.txt
     copy: src=files/robots.txt dest=/opt/badges/badges/staticfiles/robots.txt mode=0644
 
   - name: configure badges vhost
     template: src=templates/etc_apache2_sites-available_badges.j2 dest=/etc/apache2/sites-available/badges
 
-#  - name: configure lernanta-ssl vhost
-#    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
-
-#  - name: enable mod rewrite and ssl
-#    command: /usr/sbin/a2enmod rewrite ssl
-#    notify:
-#    - restart apache
-
-#  - name: create ssl directory
-#    file: path=/etc/apache2/ssl state=directory
-
-#  - name: copy ssl certificate files
-#    copy: src=files/$host/$item dest=/etc/apache2/ssl/$item mode=0600
-#    with_items:
-#    - certificate.crt
-#    - p2pu.org.key
-#    - intermediate.crt
-
-  # TODO - After enabling the SSL host, Apache requires a password to start
   - name: disable 000-default vhost
     command: /usr/sbin/a2dissite 000-default
     ignore_errors: yes

@@ -1,12 +1,12 @@
 ---
-# This playbook sets up lernanta on a server.
+# This playbook sets up badges on a server.
 # pass the host and user as extra variables.
 
 - hosts: $host
   user: $user
   sudo: yes
   vars:
-    lernanta_venv: "/opt/lernanta_venv/"
+    badges_venv: "/opt/badges_venv/"
   vars_files:
   - vars/credentials_${host}.yml
   tasks:
@@ -36,23 +36,23 @@
     - rabbitmq-server
     - memcached
 
-  - name: create lernanta user
-    user: name=lernanta
+  - name: create badges user
+    user: name=badges
 
-  - name: check out lernanta code
-    git: repo=https://github.com/p2pu/lernanta.git dest=/opt/lernanta
+  - name: check out badges code
+    git: repo=https://github.com/p2pu/badges.git dest=/opt/badges
 
-  - name: update permissions for lernanta directory
-    command: /bin/chown -R lernanta:lernanta /opt/lernanta
+  - name: update permissions for badges directory
+    command: /bin/chown -R badges:badges /opt/badges
 
-  - name: create lernanta.log file
-    command: /usr/bin/touch /opt/lernanta/lernanta/lernanta.log
+  - name: create badges.log file
+    command: /usr/bin/touch /opt/badges/badges/badges.log
 
-  - name: set permissions for lernanta.log
-    file: path=/opt/lernanta/lernanta/lernanta.log state=file owner=lernanta group=www-data mode=0664
+  - name: set permissions for badges.log
+    file: path=/opt/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
 
   - name: create static_serv directory
-    file: path=/opt/lernanta/lernanta/static_serv state=directory owner=lernanta group=www-data mode=0775
+    file: path=/opt/badges/badges/static_serv state=directory owner=badges group=www-data mode=0775
 
   - name: install pip and virtuan env
     easy_install: name=$item
@@ -65,96 +65,102 @@
     register: virtualenv
 
   - name: create python virtual environment
-    command: ${virtualenv.stdout} --system-site-packages $lernanta_venv
+    command: ${virtualenv.stdout} --system-site-packages $badges_venv
 
-  - name: install lernanta dependencies in virtual environment
-    pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
+  - name: install badges dependencies in virtual environment
+    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
 
-  - name: configure lernanta settings_local.py
-    template: src=templates/opt_lernanta_lernanta_settings_local.py.j2 dest=/opt/lernanta/lernanta/settings_local.py mode=0640 owner=lernanta group=www-data
+  - name: configure badges settings_local.py
+    template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
   - name: set permissions for media directory so that apache can write to it
-    command: /bin/chown -R lernanta:www-data /opt/lernanta/lernanta/media
+    command: /bin/chown -R badges:www-data /opt/badges/badges/media
 
   - name: set mode for media directory
-    command: /bin/chmod 0775 /opt/lernanta/lernanta/media
+    command: /bin/chmod 0775 /opt/badges/badges/media
 
-  - name: configure lernanta wsgi script
-    template: src=templates/opt_lernanta_lernanta_wsgi_production.wsgi.j2 dest=/opt/lernanta/lernanta/wsgi/production.wsgi
+#  - name: configure badges wsgi script
+#    template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/wsgi/production.wsgi
 
-  - name: create lernanta database
-    mysql_db: name=$lernanta_db_name encoding=utf8 state=present
+#  - name: create lernanta database
+#    mysql_db: name=$lernanta_db_name encoding=utf8 state=present
 
-  - name: create lernanta mysql user
-    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=${lernanta_db_name}.*:ALL state=present
+#  - name: create lernanta mysql user
+#    mysql_user: name=$lernanta_db_user password=$lernanta_db_password priv=${lernanta_db_name}.*:ALL state=present
 
   - name: run syncdb
-    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py syncdb --noinput
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py syncdb --noinput
+
+  - name: import testdata
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py load_test_data /opt/badges/testdata/test_data.json 
 
   # TODO: The following two steps should probably be corrected in the lernanta code, not here.
-  - name: copy sql script to create site entry in database
-    copy: src=files/django_site.sql dest=/tmp/django_site.sql
+#  - name: copy sql script to create site entry in database
+#    copy: src=files/django_site.sql dest=/tmp/django_site.sql
 
-  - name: create correct values in sites table
-    mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
+#  - name: create correct values in sites table
+#    mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
 
   # TODO 'ignore_errors: yes' will suppress ligitimate errors!
-  - name: create rabbitmq user
-    shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
-    ignore_errors: yes
+#  - name: create rabbitmq user
+#    shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
+#    ignore_errors: yes
 
-  - name: add rabbitmq vhost
-    shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
-    ignore_errors: yes
+#  - name: add rabbitmq vhost
+#    shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
+#    ignore_errors: yes
 
-  - name: set permissions for rabbitmq queue
-    command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
+#  - name: set permissions for rabbitmq queue
+#    command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
 
-  - name: celeryd config
-    template: src=templates/etc_default_celeryd.j2 dest=/etc/default/celeryd
+#  - name: celeryd config
+#    template: src=templates/etc_default_celeryd.j2 dest=/etc/default/celeryd
 
-  - name: celerybeat config
-    template: src=templates/etc_default_celerybeat.j2 dest=/etc/default/celerybeat
+#  - name: celerybeat config
+#    template: src=templates/etc_default_celerybeat.j2 dest=/etc/default/celerybeat
 
-  - name: copy celeryd startup script
-    copy: src=files/$item dest=/etc/init.d/$item mode=0755
-    with_items:
-    - celeryd
-    - celerybeat
+#  - name: copy celeryd startup script
+#    copy: src=files/$item dest=/etc/init.d/$item mode=0755
+#    with_items:
+#    - celeryd
+#    - celerybeat
 
-  - name: start celeryd services
-    service: name=celeryd state=started
+#  - name: start celeryd services
+#    service: name=celeryd state=started
 
-  - name: start celerybeat services
-    service: name=celerybeat state=started
+#  - name: start celerybeat services
+#    service: name=celerybeat state=started
 
   - name: run collectstatic
-    command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
+  
+  - name: copy robots.txt
+    copy: src=files/robots.txt dest=/opt/badges/badges/static_serv/robots.txt mode=0644
 
-  - name: configure lernanta vhost
+  - name: configure badges vhost
     template: src=templates/etc_apache2_sites-available_lernanta.j2 dest=/etc/apache2/sites-available/lernanta
 
-  - name: configure lernanta-ssl vhost
-    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
+#  - name: configure lernanta-ssl vhost
+#    template: src=templates/etc_apache2_sites-available_lernanta-ssl.j2 dest=/etc/apache2/sites-available/lernanta-ssl
 
-  - name: enable mod rewrite and ssl
-    command: /usr/sbin/a2enmod rewrite ssl
-    notify:
-    - restart apache
+#  - name: enable mod rewrite and ssl
+#    command: /usr/sbin/a2enmod rewrite ssl
+#    notify:
+#    - restart apache
 
-  - name: create ssl directory
-    file: path=/etc/apache2/ssl state=directory
+#  - name: create ssl directory
+#    file: path=/etc/apache2/ssl state=directory
 
-  - name: copy ssl certificate files
-    copy: src=files/$host/$item dest=/etc/apache2/ssl/$item mode=0600
-    with_items:
-    - certificate.crt
-    - p2pu.org.key
-    - intermediate.crt
+#  - name: copy ssl certificate files
+#    copy: src=files/$host/$item dest=/etc/apache2/ssl/$item mode=0600
+#    with_items:
+#    - certificate.crt
+#    - p2pu.org.key
+#    - intermediate.crt
 
   # TODO - After enabling the SSL host, Apache requires a password to start
-  - name: enable lernanta vhost
-    command: /usr/sbin/a2ensite lernanta lernanta-ssl
+  - name: enable badges vhost
+    command: /usr/sbin/a2ensite badges #badges-ssl
     notify:
     - restart apache
 

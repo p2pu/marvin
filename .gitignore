@@ -33,3 +33,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Vagrant
+.vagrant
+
+# Local credentials
+badges/vars/credentials_badges-vm.yml

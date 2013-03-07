@@ -1,0 +1,34 @@
+---
+# This playbook deploys a new version of badges on a server.
+# Pass host and user as extra variables.
+
+- hosts: $host
+  user: $user
+  sudo: yes
+  vars:
+    badges_venv: "/opt/badges_venv/"
+  vars_files:
+  - vars/credentials_${host}.yml
+  tasks:
+
+  - name: stop apache
+    service: name=apache2 state=stopped
+    ignore_errors: yes
+
+  - name: backup badges directory
+    command: /bin/tar czf /tmp/badges_files.tar.gz -C /opt/ badges
+
+  - name: update badges code
+    git: repo=https://github.com/p2pu/badges.git dest=/opt/badges version=HEAD
+
+  - name: update badges dependencies in virtual environment
+    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
+
+  - name: run collectstatic
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
+
+  - name: update badges settings_local.py
+    template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
+
+  - name: restart apache
+    service: name=apache2 state=restarted

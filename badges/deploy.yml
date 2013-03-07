@@ -13,6 +13,7 @@
 
   - name: stop apache
     service: name=apache2 state=stopped
+    ignore_errors: yes
 
   - name: backup badges directory
     command: /bin/tar czf /tmp/badges_files.tar.gz -C /opt/ badges
@@ -22,9 +23,6 @@
 
   - name: update badges dependencies in virtual environment
     pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
-
-  - name: updating media files
-    command: cp -pr /opt/badges/badges/uploads/images /opt/badges/badges/media
 
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput

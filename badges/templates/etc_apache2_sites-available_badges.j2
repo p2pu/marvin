@@ -24,8 +24,8 @@
 
     # force all content to be served as static files
     # otherwise django will be crunching images through itself wasting time
-    Alias /media/ "/opt/badges/badges/media/"
-    <Directory "/opt/badges/badges/media">
+    Alias /media/ "/opt/badges/badges/uploads/"
+    <Directory "/opt/badges/badges/uploads">
         Order deny,allow
         Allow from all
         Options MultiViews FollowSymLinks
@@ -39,15 +39,7 @@
         Options MultiViews FollowSymLinks
         AllowOverride None
     </Directory>
-
-    Alias /admin-media/ "/{{badges_venv}}/lib/python2.7/site-packages/django/contrib/admin/media/"
-    <Directory "/{{badges_venv}}/lib/python2.7/site-packages/django/contrib/admin/media">
-        Order deny,allow
-        Allow from all
-        Options MultiViews FollowSymLinks
-        AllowOverride None
-    </Directory>
-
+    
     #this is your wsgi script described in the prev section
     WSGIScriptAlias / /opt/badges/badges/badges/production.py
 </VirtualHost>

@@ -65,11 +65,17 @@
   - name: configure badges settings_local.py
     template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
-  - name: set permissions for media directory so that apache can write to it
-    command: /bin/chown -R badges:www-data /opt/badges/badges/media
+  - name: create uploads file
+    command: mkdir /opt/badges/badges/uploads
 
-  - name: set mode for media directory
-    command: /bin/chmod 0775 /opt/badges/badges/media
+  - name: create uploads/images file
+    command: mkdir /opt/badges/badges/uploads/images
+
+  - name: set permissions for uploads directory so that apache can write to it
+    command: /bin/chown -R badges:www-data /opt/badges/badges/uploads
+
+  - name: set mode for uploads directory
+    command: /bin/chmod 0775 /opt/badges/badges/uploads
 
   - name: configure badges wsgi script
     template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
@@ -79,9 +85,6 @@
 
   - name: import testdata
     command: $badges_venv/bin/python /opt/badges/badges/manage.py load_test_data /opt/badges/testdata/test_data.json 
-
-  - name: copy uploads images to media
-    command: cp -pr /opt/badges/badges/uploads/images /opt/badges/badges/media
 
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput

@@ -39,3 +39,4 @@ nosetests.xml
 
 # Local credentials
 badges/vars/credentials_badges-vm.yml
+credentials_*.yml

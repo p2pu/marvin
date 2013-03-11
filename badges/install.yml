@@ -23,9 +23,11 @@
     - libssl-dev
     - gettext
     - python-iso8601
-    - make
     - apache2
     - libapache2-mod-wsgi
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
 
   - name: create badges user
     user: name=badges
@@ -63,34 +65,42 @@
     pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
 
   - name: configure badges settings_local.py
-    template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
+    template: src=templates/opt_badges_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
-  - name: create uploads file
-    command: mkdir /opt/badges/badges/uploads
+  - name: create uploads directory
+    file: path=/opt/badges/badges/uploads state=directory owner=badges group=www-data mode=0775
 
-  - name: create uploads/images file
-    command: mkdir /opt/badges/badges/uploads/images
+- hosts: $host
+  user: $user
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+  vars_files:
+  - vars/credentials_${host}.yml
+  tasks:
+  - name: create postgresql user
+    postgresql_user: name=$badges_db_user password=$badges_db_password role_attr_flags=CREATEDB,LOGIN
 
-  - name: set permissions for uploads directory so that apache can write to it
-    command: /bin/chown -R badges:www-data /opt/badges/badges/uploads
+- hosts: $host
+  user: $user
+  sudo: yes
+  vars:
+    badges_venv: "/opt/badges_venv/"
+  vars_files:
+  - vars/credentials_${host}.yml
+  tasks:
 
-  - name: set mode for uploads directory
-    command: /bin/chmod 0775 /opt/badges/badges/uploads
+  - name: create postgresql database
+    postgresql_db: encoding=utf8 name=$badges_db_name state=present login_user=$badges_db_user login_password=$badges_db_password login_host=127.0.0.1 template=template0
 
   - name: configure badges wsgi script
-    template: src=templates/opt_badges_badges_wsgi_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
+    template: src=templates/opt_badges_badges_badges_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
 
   - name: run syncdb
     command: $badges_venv/bin/python /opt/badges/badges/manage.py syncdb --noinput
 
-  - name: import testdata
-    command: $badges_venv/bin/python /opt/badges/badges/manage.py load_test_data /opt/badges/testdata/test_data.json 
-
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
-
-  - name: copy robots.txt
-    copy: src=files/robots.txt dest=/opt/badges/badges/staticfiles/robots.txt mode=0644
 
   - name: configure badges vhost
     template: src=templates/etc_apache2_sites-available_badges.j2 dest=/etc/apache2/sites-available/badges
@@ -102,7 +112,7 @@
     - restart apache
 
   - name: enable badges vhost
-    command: /usr/sbin/a2ensite badges #badges-ssl
+    command: /usr/sbin/a2ensite badges
     notify:
     - restart apache
 

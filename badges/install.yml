@@ -39,10 +39,10 @@
     command: /bin/chown -R badges:badges /opt/badges
 
   - name: create badges.log file
-    command: /usr/bin/touch /opt/badges/badges/badges.log
+    command: /usr/bin/touch /opt/badges/badges/badges/badges.log
 
   - name: set permissions for badges.log
-    file: path=/opt/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
+    file: path=/opt/badges/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
 
   - name: install pip
     easy_install: name=$item
@@ -98,6 +98,9 @@
 
   - name: run syncdb
     command: $badges_venv/bin/python /opt/badges/badges/manage.py syncdb --noinput
+
+  - name: run migrate
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py migrate --noinput
 
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput

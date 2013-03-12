@@ -35,5 +35,7 @@
   - name: run collectstatic
     command: $lernanta_venv/bin/python /opt/lernanta/lernanta/manage.py collectstatic --noinput
 
+#TODO need to restart celeryd!!
+
   - name: restart apache
     service: name=apache2 state=restarted

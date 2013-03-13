@@ -1,5 +1,11 @@
 from settings import *
 
+ADMINS = (
+        ('{{ badges_admin_user }}', '{{ badges_admin_email }}'),
+    )
+
+MANAGERS = ADMINS
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -28,3 +34,9 @@ NOTIFICATION_URL = '{{ notification_url }}'
 DEFAULT_FROM_ADDRESS = 'Badges'
 
 SECRET_KEY = '{{ badges_secret_key }}'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@p2pu.org'
+EMAIL_HOST='smtp.sendgrid.net'
+EMAIL_HOST_PASSWORD='{{smtp_password}}'
+EMAIL_HOST_USER="admin@p2pu.org"

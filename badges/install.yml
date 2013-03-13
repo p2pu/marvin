@@ -40,7 +40,7 @@
     command: /usr/bin/env git submodule init chdir=/opt/badges
 
   - name: git submodule update
-    command: /usr/bin/env git submodule update chdir=/opt/badge
+    command: /usr/bin/env git submodule update chdir=/opt/badges
 
   - name: update permissions for badges directory
     command: /bin/chown -R badges:badges /opt/badges

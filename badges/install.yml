@@ -28,12 +28,19 @@
     - postgresql
     - libpq-dev
     - python-psycopg2
+    - rake
 
   - name: create badges user
     user: name=badges
 
   - name: check out badges code
     git: repo=https://github.com/p2pu/badges.git dest=/opt/badges
+
+  - name: init git submodule
+    command: /usr/bin/env git submodule init chdir=/opt/badges
+
+  - name: git submodule update
+    command: /usr/bin/env git submodule update chdir=/opt/badge
 
   - name: update permissions for badges directory
     command: /bin/chown -R badges:badges /opt/badges
@@ -62,13 +69,22 @@
     command: ${virtualenv.stdout} --distribute $badges_venv
 
   - name: install badges dependencies in virtual environment
-    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
+    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv
+
+  - name: get code for sass
+    git: repo=https://github.com/nex3/sass.git dest=/opt/sass version=3.2.7
+
+  - name: install sass compiler
+    command: /usr/bin/env rake install chdir=/opt/sass
 
   - name: configure badges settings_local.py
     template: src=templates/opt_badges_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
   - name: create uploads directory
     file: path=/opt/badges/badges/uploads state=directory owner=badges group=www-data mode=0775
+
+  - name: create static files directory
+    file: path=/opt/badges/badges/staticfiles state=directory owner=badges group=www-data mode=0775
 
 - hosts: $host
   user: $user

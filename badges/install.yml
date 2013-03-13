@@ -83,6 +83,9 @@
   - name: create uploads directory
     file: path=/opt/badges/badges/uploads state=directory owner=badges group=www-data mode=0775
 
+  - name: create uploads/images directory
+    file: path=/opt/badges/badges/uploads/images state=directory owner=badges group=www-data mode=0775
+
   - name: create static files directory
     file: path=/opt/badges/badges/staticfiles state=directory owner=badges group=www-data mode=0775
 

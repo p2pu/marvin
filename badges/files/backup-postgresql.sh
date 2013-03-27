@@ -8,7 +8,7 @@ source /etc/backup-credentials.sh
 /usr/bin/env logger -t $LOG_HEADER "Starting db dump"
 
 DST_FILE=${BACKUP_PATH}/postgres_${DB_NAME}.sql
-/usr/bin/env pg_dump $DB_NAME > $DST_FILE
+/usr/bin/env pg_dump -h 127.0.0.1 $DB_NAME -f $DST_FILE
 if [ $? -ne 0 ]
 then
   /usr/bin/env logger -t $LOG_HEADER "pg_dump failed with result: $?"

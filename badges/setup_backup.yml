@@ -5,16 +5,6 @@
 - hosts: $host
   user: $user
   sudo: yes
-  sudo_user: postgres
-  vars_files:
-  - vars/credentials_${host}.yml
-  tasks:
-  - name: create postgresql backup user
-    postgresql_user: name=$backup_db_user password=$backup_db_password role_attr_flags=LOGIN
-
-- hosts: $host
-  user: $user
-  sudo: yes
   vars:
     venv_path: "/opt/aws_venv/"
   vars_files:
@@ -47,14 +37,14 @@
   - name: Create backup directory for postgresql
     file: path=/opt/backup/postgresql state=directory
 
-  - name: Create backup directory for media
-    file: path=/opt/backup/media state=directory
+  - name: Create backup directory for uploads
+    file: path=/opt/backup/uploads state=directory
 
   - name: Copy postgresql backup script to server
     copy: src=files/backup-postgresql.sh dest=/opt/backup/backup-postgresql.sh mode=0755
         
-  - name: Copy media backup script to server
-    copy: src=files/backup-media.sh dest=/opt/backup/backup-media.sh mode=0755
+  - name: Copy upload backup script to server
+    copy: src=files/backup-uploads.sh dest=/opt/backup/backup-uploads.sh mode=0755
         
   - name: Copy backup credentials to server
     template: src=templates/etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0640 owner=root group=backup
@@ -62,5 +52,5 @@
   - name: Add cron entry to run backup-postgresql script daily at 9h30 UTC
     cron: name="backup-postgresql" hour="9" minute="30" job="/opt/backup/backup-postgresql.sh" state=present
 
-  - name: Add cron entry to run backup-media script daily at 10h30 UTC
-    cron: name="backup-media" hour="10" minute="30" job="/opt/backup/backup-media.sh" state=present
+  - name: Add cron entry to run backup-uploads script daily at 10h30 UTC
+    cron: name="backup-uploads" hour="10" minute="30" job="/opt/backup/backup-uploads.sh" state=present

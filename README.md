@@ -1,7 +1,8 @@
 marvin
 ======
 
-<img src="http://www.deviantart.com/download/84301828/Marvin_the_Martian_by_EJJS.jpg" />
+![Marvin](http://info.p2pu.org/wp-content/uploads/2013/06/3356358479_a0e3ee8a05_b.jpg)
+Image CC-BY-SA [John Greenaway](http://www.flickr.com/photos/johngreenaway/)
 
 Marvin helps us to manage the services that we use at P2PU using [ansible](http://ansible.cc/).
 

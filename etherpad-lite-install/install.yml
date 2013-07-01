@@ -2,8 +2,8 @@
 # This playbook sets up etherpad-lite on a server.
 # pass the hosts to install to as an extra variable
 
-- hosts: $hosts
-  user: user
+- hosts: $host
+  user: $user
   sudo: yes
   tasks:
 
@@ -23,11 +23,10 @@
     notify:
     - update apt cache
 
-  - name: install nodejs and npm
-    apt: pkg=$item state=installed
+  - name: install nodejs
+    apt: pkg=$item state=installed update_cache=yes
     with_items:
     - nodejs
-    - npm
 
   - name: add nginx ppa repository
     apt_repository: repo=ppa:nginx/stable

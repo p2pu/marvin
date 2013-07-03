@@ -29,6 +29,10 @@
 
   */
 
+  // Session Key, used for reconnecting user sessions
+  // Set this to a secure string at least 10 characters long. Do not share this value.
+  "sessionKey" : "{{ session_key }}",
+
   //The Type of the database. You can choose between dirty, postgres, sqlite and mysql
   //You shouldn't use "dirty" for for anything else than testing or development
   //"dbType" : "dirty",
@@ -41,10 +45,10 @@
                  
    "dbType" : "mysql",
    "dbSettings" : {
-                    "user"    : "epl", 
-                    "host"    : "localhost", 
-                    "password": "12345", 
-                    "database": "epl"
+                    "user"    : "{{ db_user }}",
+                    "host"    : "localhost",
+                    "password": "{{ db_password }}",
+                    "database": "{{ db_name }}"
                   },
   
   //the default text of a pad

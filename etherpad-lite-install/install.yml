@@ -20,8 +20,6 @@
 
   - name: add nodejs ppa repository
     apt_repository: repo=ppa:chris-lea/node.js
-    notify:
-    - update apt cache
 
   - name: install nodejs
     apt: pkg=$item state=installed update_cache=yes
@@ -30,17 +28,15 @@
 
   - name: add nginx ppa repository
     apt_repository: repo=ppa:nginx/stable
-    notify:
-    - update apt cache
 
   - name: install nginx
-    apt: pkg=nginx state=installed
+    apt: pkg=nginx state=installed update_cache=yes
 
   - name: create etherpad-lite database
-    mysql_db: name=epl encoding=utf8 state=present
+    mysql_db: name=$db_name encoding=utf8 state=present
 
   - name: create etherpad-lite mysql user
-    mysql_user: name=epl password=12345 priv=epl.*:ALL state=present
+    mysql_user: name=$db_user password=$db_password priv=$db_name.*:ALL state=present
 
   - name: create etherpad-lite user
     user: name=etherpad-lite
@@ -75,6 +71,3 @@
 
   - name: restart nginx
     service: name=nginx state=restarted
-
-  - name: update apt cache
-    apt: update-cache=yes

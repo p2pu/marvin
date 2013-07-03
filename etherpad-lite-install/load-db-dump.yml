@@ -3,18 +3,13 @@
 # The database needs to be compressed with bzip2.
 # The following extra variables needs to be passed in:
 # - hosts : the 
-# - db_dump_path : the path to the database dump that is compressed using bzip2
+# - db_dump_url : the URL to the database dump that is compressed using bzip2
 # And you need to put db_name, db_user and db_password in vars/credentials.yml
 
-- hosts: $hosts
-  user: user
+- hosts: $host
+  user: $user
   sudo: yes
-  vars_files:
-  - vars/credentials.yml
   tasks:
-
-  - name: blah
-    debug: msg="$db_name $db_user $db_password"
 
   - name: stop etherpad-lite
     service: name=etherpad-lite state=stopped
@@ -23,7 +18,7 @@
     mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=dump target=/tmp/mysql-$db_name.sql
 
   - name: copy existing database to remote server
-    copy: src=$db_dump_path dest=/tmp/etherpad.sql.bz2
+    get_url: url=$db_dump_url dest=/tmp/etherpad.sql.bz2
 
   - name: uncompress database dump
     command: /bin/bunzip2 /tmp/etherpad.sql.bz2 creates=/tmp/etherpad.sql
@@ -37,3 +32,5 @@
   - name: remove database dump
     file: path=/tmp/etherpad.sql state=absent
 
+  - name: remove database backup
+    file: path=/tmp/mysql-$db_name.sql state=absent

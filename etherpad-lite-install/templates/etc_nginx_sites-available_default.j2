@@ -5,8 +5,25 @@ upstream etherpad-lite {
 server {
     listen 80 default_server;
     location / {
+        rewrite ^/$ / break;
+        rewrite ^/locales/(.*) /locales/$1 break;
+        rewrite ^/locales.json /locales.json break;
+        rewrite ^/admin(.*) /admin/$1 break;
+        rewrite ^/p/(.*) /p/$1 break;
+        rewrite ^/static/(.*) /static/$1 break;
+        rewrite ^/pluginfw/(.*) /pluginfw/$1 break;
+        rewrite ^/javascripts/(.*) /javascripts/$1 break;
+        rewrite ^/socket.io/(.*) /socket.io/$1 break;
+        rewrite ^/ep/(.*) /ep/$1 break;
+        rewrite ^/minified/(.*) /minified/$1 break;
+        rewrite ^/api/(.*) /api/$1 break;
+        rewrite ^/ro/(.*) /ro/$1 break;
+        rewrite ^/error/(.*) /error/$1 break;
+        rewrite ^/jserror(.*) /jserror$1 break;
+        rewrite /favicon.ico /favicon.ico break;
+        rewrite /robots.txt /robots.txt break;
+        rewrite /(.*) /p/$1;
         proxy_buffering off;
-        proxy_redirect off;
         proxy_set_header Host $host;
         proxy_pass http://etherpad-lite;
     }

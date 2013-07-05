@@ -1,6 +1,9 @@
 ---
 # This playbook sets up lernanta on a server.
 # pass the host and user as extra variables.
+# TODO: add hosts file in repo so that we don't need /etc/ansible/hosts
+# - split up playbook and set up staging and live playbooks
+# - use inventory
 
 - hosts: $host
   user: $user
@@ -48,6 +51,7 @@
   - name: create lernanta.log file
     command: /usr/bin/touch /opt/lernanta/lernanta/lernanta.log
 
+    #TODO move this to a folder where www-data has write permissions?
   - name: set permissions for lernanta.log
     file: path=/opt/lernanta/lernanta/lernanta.log state=file owner=lernanta group=www-data mode=0664
 
@@ -98,17 +102,11 @@
   - name: create correct values in sites table
     mysql_db: name=$lernanta_db_name state=import target=/tmp/django_site.sql login_user=$lernanta_db_user login_password=$lernanta_db_password
 
-  # TODO 'ignore_errors: yes' will suppress ligitimate errors!
-  - name: create rabbitmq user
-    shell: /usr/sbin/rabbitmqctl add_user $lernanta_rabbitmq_broker_user $lernanta_rabbitmq_broker_password
-    ignore_errors: yes
-
   - name: add rabbitmq vhost
-    shell: /usr/sbin/rabbitmqctl add_vhost lernanta_vhost
-    ignore_errors: yes
+    rabbitmq_vhost: name=lernanta_vhost state=present
 
-  - name: set permissions for rabbitmq queue
-    command: /usr/sbin/rabbitmqctl set_permissions -p lernanta_vhost $lernanta_rabbitmq_broker_user ".*" ".*" ".*"
+  - name: create rabbitmq user
+    rabbitmq_user: user=$lernanta_rabbitmq_broker_user password=$lernanta_rabbitmq_broker_password vhost=lernanta_vhost configure_priv=.* read_priv=.* write_priv=.* state=present
 
   - name: celeryd config
     template: src=templates/etc_default_celeryd.j2 dest=/etc/default/celeryd

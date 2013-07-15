@@ -146,8 +146,8 @@
   - name: copy ssl certificate files
     copy: src=files/$host/$item dest=/etc/apache2/ssl/$item mode=0600
     with_items:
-    - certificate.crt
-    - p2pu.org.key
+    - public.crt
+    - private.key
     - intermediate.crt
 
   # TODO - After enabling the SSL host, Apache requires a password to start

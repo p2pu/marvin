@@ -1,0 +1,33 @@
+---
+# This playbook sets up folder backups for the server.
+
+  - name: Install required software packages
+    apt: pkg=$item state=installed
+    with_items:
+    - python-setuptools
+
+  - name: install pip and virtuan env
+    easy_install: name=$item
+    with_items:
+    - pip
+    - virtualenv
+
+  - name: create python virtual environment
+    command: /usr/bin/env virtualenv --system-site-packages $venv_path
+
+  - name: install virtual environment packages
+    pip: name=$item virtualenv=$venv_path
+    with_items:
+    - dcu.active-memory
+
+  - name: Create backup directory
+    file: path=/opt/backup/media state=directory
+
+  - name: Copy backup script to server
+    template: src=opt_backup_backup-folder.sh.j2 dest=/opt/backup/backup-folder.sh mode=0755
+
+  - name: Copy backup credentials to server
+    template: src=etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0640 owner=root group=backup
+
+  - name: Add cron entry to run backup-folder script daily at 10h00 UTC
+    cron: name="backup-folder" hour="12" minute="0" job="/opt/backup/backup-folder.sh" state=present

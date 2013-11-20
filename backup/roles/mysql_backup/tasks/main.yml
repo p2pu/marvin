@@ -1,0 +1,38 @@
+---
+# This playbook sets up mysql backups for the server.
+# pass the host and user as extra variables.
+
+  - name: Install required software packages
+    apt: pkg=$item state=installed
+    with_items:
+    - python-setuptools
+    - python-mysqldb
+
+  - name: install pip and virtuan env
+    easy_install: name=$item
+    with_items:
+    - pip
+    - virtualenv
+
+  - name: create python virtual environment
+    command: /usr/bin/env virtualenv --system-site-packages $venv_path
+
+  - name: install virtual environment packages
+    pip: name=$item virtualenv=$venv_path
+    with_items:
+    - dcu.active-memory
+
+  - name: Create backup directory for mysql
+    file: path=/opt/backup/mysql state=directory
+
+  - name: Copy mysql backup script to server
+    copy: src=backup-mysql.sh dest=/opt/backup/backup-mysql.sh mode=0755
+        
+  - name: Copy backup credentials to server
+    template: src=etc_backup-credentials.sh.j2 dest=/etc/backup-credentials.sh mode=0640 owner=root group=backup
+
+  - name: create backup mysql user
+    mysql_user: name=$backup_db_user password=$backup_db_password priv="*.*:SELECT,LOCK TABLES" state=present
+
+  - name: Add cron entry to run backup-mysql script daily at 9h00 UTC
+    cron: name="backup-mysql" hour="11" minute="0" job="/opt/backup/backup-mysql.sh" state=present

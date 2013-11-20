@@ -1,0 +1,12 @@
+---
+
+- name: info.p2pu.org
+  hosts: info.p2pu.org
+  sudo: yes
+  vars:
+    venv_path: "/opt/aws_venv/"
+    folder: $folder_backup
+  roles:
+  - mysql_backup
+  - folder_backup
+

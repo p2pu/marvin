@@ -10,3 +10,19 @@
   - mysql_backup
   - folder_backup
 
+- name: thepeople.p2pu.org
+  hosts: thepeople.p2pu.org
+  sudo: yes
+  vars:
+    venv_path: "/opt/aws_venv/"
+  roles:
+  - postgres_backup
+
+
+- name: pad.p2pu.org
+  hosts: pad.p2pu.org
+  sudo: yes
+  vars:
+    venv_path: "/opt/aws_venv/"
+  roles:
+  - { role: mysql_backup, tags: [ 'pad.p2pu.org' ] }

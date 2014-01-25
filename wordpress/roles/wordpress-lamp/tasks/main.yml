@@ -1,0 +1,57 @@
+---
+
+- name: Install required software packages
+  apt: pkg={{ item }} state=installed
+  with_items:
+  - python-mysqldb
+
+- name: Download Wordpress
+  get_url: url=http://wordpress.org/wordpress-{{ wp_version }}.tar.gz dest=/opt/ sha256sum={{ wp_sha256sum }}
+
+- name: Extract archive
+  command: chdir=/opt/ /bin/tar xvf wordpress-{{ wp_version }}.tar.gz creates=/opt/wordpress
+
+- name: Add group "wordpress"
+  group: name=wordpress
+
+- name: Add user "wordpress"
+  user: name=wordpress group=wordpress home=/home/wordpress/
+
+- name: Fetch random salts for Wordpress config
+  local_action: command curl https://api.wordpress.org/secret-key/1.1/salt/
+  register: "wp_salt"
+  sudo: no
+
+- name: Create Wordpress database
+  mysql_db: name={{ wp_db_name }} state=present
+
+- name: Create Wordpress database user
+  mysql_user: name={{ wp_db_user }} password={{ wp_db_password }} priv={{ wp_db_name }}.*:ALL host='localhost' state=present
+
+- name: Copy Wordpress config file
+  template: src=wp-config.php dest=/opt/wordpress/
+
+- name: Change ownership of Wordpress installation
+  file: path=/opt/wordpress/ owner=www-data group=wordpress state=directory recurse=yes
+
+- name: enable apache mod_rewrite
+  shell: a2enmod rewrite
+  notify: restart apache
+
+- name: Removing default apache config
+  file: path=/etc/apache2/sites-enabled/default state=absent
+  notify: restart apache
+
+- name: render apache sites available
+  template: src=apache-wp.j2 dest=/etc/apache2/sites-available/{{site_name}}
+  notify: restart apache
+
+- name: Creating config link to sites available
+  file: src=/etc/apache2/sites-available/{{site_name}} dest=/etc/apache2/sites-enabled/{{site_name}} state=link owner=root group=root
+  notify: restart apache
+
+- name: disable default site
+  shell: a2dissite default
+
+- name: enable wordpress site
+  shell: a2ensite {{site_name}}

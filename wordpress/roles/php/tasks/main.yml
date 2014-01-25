@@ -1,0 +1,11 @@
+---
+- name: install packages
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - php5
+    - php5-mysql
+    - php5-curl
+    - php5-cgi
+    - php5-gd
+    - libapache2-mod-php5
+  notify: restart apache

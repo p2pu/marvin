@@ -1,0 +1,7 @@
+---
+  - name: Install required software packages
+    apt: pkg={{ item }} state=installed
+    with_items:
+    - apache2
+
+#TODO setup apache to log to remote location

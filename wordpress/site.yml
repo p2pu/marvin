@@ -1,0 +1,14 @@
+---
+# This playbook sets up etherpad-lite on a server.
+# pass the hosts to install to as an extra variable
+
+- name: WordPress
+  hosts: wordpress
+  sudo: yes
+
+  roles:
+  - common
+  - apache
+  - mysql
+  - php
+  - wordpress-lamp

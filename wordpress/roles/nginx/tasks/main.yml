@@ -1,0 +1,11 @@
+---
+  - name: install python-software-properties
+    apt: pkg=python-software-properties state=installed
+
+  - name: add nginx ppa repository
+    apt_repository: repo=ppa:nginx/stable
+
+  - name: install nginx
+    apt: pkg=nginx state=installed update_cache=yes
+    notify:
+    - restart nginx

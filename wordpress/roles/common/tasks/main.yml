@@ -1,0 +1,11 @@
+---
+  - name: Update apt packages
+    apt: update-cache=yes
+
+  - name: Install fail2ban
+    apt: pkg={{ item }} state=installed
+    with_items:
+    - fail2ban
+
+  - name: configure fail2ban
+    template: src=etc_fail2ban_jail_local.j2 dest=/etc/fail2ban/jail.local

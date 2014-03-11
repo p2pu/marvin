@@ -1,0 +1,15 @@
+---
+- name: create docker directory
+  file: group=docker mode=2775 path=/var/docker
+
+- name: get git source for discourse docker setup
+  git: repo=https://github.com/discourse/discourse_docker.git dest=/var/docker
+
+- name: set config variables for discourse
+  template: src=app.yml dest=/var/docker/containers/app.yml group=docker mode=0775
+
+- name: run bootstrap
+  shell: chdir=/var/docker/ executable=/bin/bash /var/docker/launcher bootstrap app
+
+- name: start image
+  shell: chdir=/var/docker/ executable=/bin/bash /var/docker/launcher start app

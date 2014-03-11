@@ -1,0 +1,12 @@
+---
+- name: docker
+  hosts: docker
+  tasks:
+  - name: install python-pycurl
+    apt: pkg=python-pycurl state=installed
+
+- name: docker
+  hosts: docker
+  roles:
+    - angstwad.docker_ubuntu
+    - discourse

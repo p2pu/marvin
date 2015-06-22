@@ -1,0 +1,10 @@
+---
+- name: docker
+  hosts: docker
+  sudo: yes
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - nginx-proxy
+  - postgres
+  - knight-app

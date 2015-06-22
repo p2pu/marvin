@@ -1,0 +1,4 @@
+---
+- name: install python-pycurl
+  apt: pkg=python-pycurl state=installed
+

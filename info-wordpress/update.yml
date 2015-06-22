@@ -1,0 +1,10 @@
+---
+# Deploying wordpress theme
+
+- hosts: info-main
+  user: dirkcuys
+  sudo: no
+
+  tasks:
+  - name: update wordpress theme
+    git: repo=https://github.com/p2pu/P2PUfourteen-wp-theme.git dest=/home/dirkcuys/info.p2pu.org/wp-content/themes/P2PUfourteen-wp-theme

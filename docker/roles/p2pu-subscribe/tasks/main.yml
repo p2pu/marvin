@@ -1,0 +1,49 @@
+---
+- name: install git
+  apt: pkg=git-core state=installed
+
+- name: get Dockerfile
+  git: repo=https://github.com/p2pu/docker-images.git dest=/var/docker-images
+
+- name: build docker image
+  docker_image: path="/var/docker-images/subscribe-container" name="p2pu/subscribe" state=build
+
+- name: create postgres user
+  postgresql_user:
+    name: "{{SUBSCRIBE.DB_USER}}"
+    password: "{{SUBSCRIBE.DB_PASSWORD}}"
+    login_host: "127.0.0.1"
+    login_user: "{{PG_ADMIN_USER}}"
+    login_password: "{{PG_ADMIN_PASSWORD}}"
+
+
+- name: create postgres db
+  postgresql_db:
+    name: "{{SUBSCRIBE.DB_NAME}}"
+    encoding: UTF-8
+    login_host: "127.0.0.1"
+    login_user: "{{PG_ADMIN_USER}}"
+    login_password: "{{PG_ADMIN_PASSWORD}}"
+    owner: "{{SUBSCRIBE.DB_USER}}"
+
+- name: Subscribe app
+  docker:
+    name: p2pu-subscribe
+    image: p2pu/subscribe:latest
+    state: reloaded
+    volumes:
+    - "/var/p2pu/volumes/subscribe/static:/var/app/static_serve"
+    links:
+    - "p2pu-postgres:postgres"
+    - "p2pu-rabbitmq:rabbitmq"
+    env:
+      VIRTUAL_HOST: "subscribe.p2pu.org"
+      DATABASE_URL: "postgres://{{ SUBSCRIBE.DB_USER }}:{{ SUBSCRIBE.DB_PASSWORD }}@postgres:5432/{{ SUBSCRIBE.DB_NAME }}"
+      ADMIN_EMAIL: "{{SUBSCRIBE.ADMIN_EMAIL}}"
+      SECRET_KEY: "{{SUBSCRIBE.SECRET_KEY}}"
+      EMAIL_HOST: "{{SUBSCRIBE.EMAIL_HOST}}"
+      EMAIL_HOST_USER: "{{SUBSCRIBE.EMAIL_HOST_USER}}"
+      EMAIL_HOST_PASSWORD: "{{SUBSCRIBE.EMAIL_HOST_PASSWORD}}"
+      DEFAULT_FROM_EMAIL: "{{SUBSCRIBE.DEFAULT_FROM_EMAIL}}"
+      BROKER_URL: "amqp://guest:guest@rabbitmq//"
+

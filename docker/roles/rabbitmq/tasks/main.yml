@@ -1,0 +1,14 @@
+# This role install a docker image to run a postgres server. The postgres port is exposed locally so that it can be accesses using psql. Dependancies for using other ansible postgresql commands are also installed
+
+---
+- name: RabbitMQ docker container
+  docker:
+    name: p2pu-rabbitmq
+    hostname: p2pu-rabbitmq
+    image: rabbitmq:3
+    pull: always
+    state: reloaded
+    volumes:
+    - "/var/p2pu/volumes/p2pu-rabbitmq:/var/lib/rabbitmq"
+    env:
+      RABBITMQ_NODENAME: "p2pu-rabbitmq"

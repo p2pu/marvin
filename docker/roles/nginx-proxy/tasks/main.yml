@@ -1,13 +1,12 @@
 ---
-#TODO add SSL config
 
 - name: Create directory
   file: path=/var/p2pu/volumes/p2pu-nginx/certs state=directory
 
-- name: Copy SSL certs chicago.p2pu.org.crt
+- name: Copy SSL certs p2pu.org.crt
   copy: src="files/p2pu.org.crt" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.crt owner=root group=root mode=600
 
-- name: Copy SSL certs chicago.p2pu.org.key
+- name: Copy SSL certs p2pu.org.key
   copy: src="files/p2pu.org.key" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.key owner=root group=root mode=600
 
 - name: Nginx proxy
@@ -15,9 +14,12 @@
     name: p2pu-nginx
     image: jwilder/nginx-proxy
     state: reloaded
+    restart_policy: always
     volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
     - /var/p2pu/volumes/p2pu-nginx/certs:/etc/nginx/certs
+    - /var/p2pu/volumes/p2pu-nginx/vhosts.d:/etc/nginx/vhost.d
+    - /var/p2pu/volumes/p2pu-nginx/static:/var/www/extra/
     ports:
     - 80:80
     - 443:443

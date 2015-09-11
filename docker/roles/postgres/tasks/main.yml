@@ -8,12 +8,13 @@
   - libpq-dev
   - python-psycopg2
 
-- name: Postgres server
+- name: start postgres docker image
   docker:
     name: p2pu-postgres
     image: postgres
     pull: always
     state: reloaded
+    restart_policy: always
     ports:
     - 127.0.0.1:5432:5432
     volumes:

@@ -7,4 +7,6 @@
   - angstwad.docker_ubuntu
   - nginx-proxy
   - postgres
+  - rabbitmq
+  - p2pu-subscribe
   - knight-app

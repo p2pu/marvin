@@ -3,13 +3,13 @@
 ---
 - name: RabbitMQ docker container
   docker:
-    name: p2pu-rabbitmq
-    hostname: p2pu-rabbitmq
+    name: knight-rabbitmq
+    hostname: knight-rabbitmq
     image: rabbitmq:3
     pull: always
     state: reloaded
     restart_policy: always
     volumes:
-    - "/var/p2pu/volumes/p2pu-rabbitmq:/var/lib/rabbitmq"
+    - "/var/p2pu/volumes/knight-rabbitmq:/var/lib/rabbitmq"
     env:
-      RABBITMQ_NODENAME: "p2pu-rabbitmq"
+      RABBITMQ_NODENAME: "knight-rabbitmq"

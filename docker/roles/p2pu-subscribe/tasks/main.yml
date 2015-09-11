@@ -26,18 +26,21 @@
     login_password: "{{PG_ADMIN_PASSWORD}}"
     owner: "{{SUBSCRIBE.DB_USER}}"
 
-- name: Subscribe app
+- name: start docker container
   docker:
     name: p2pu-subscribe
     image: p2pu/subscribe:latest
     state: reloaded
+    restart_policy: always
     volumes:
     - "/var/p2pu/volumes/subscribe/static:/var/app/static_serve"
+    - "/var/p2pu/volumes/subscribe/log:/var/log"
+    - "/var/p2pu/volumes/subscribe/celery:/var/lib/celery"
     links:
     - "p2pu-postgres:postgres"
     - "p2pu-rabbitmq:rabbitmq"
     env:
-      VIRTUAL_HOST: "subscribe.p2pu.org"
+      VIRTUAL_HOST: "{{SUBSCRIBE.DOMAIN}}"
       DATABASE_URL: "postgres://{{ SUBSCRIBE.DB_USER }}:{{ SUBSCRIBE.DB_PASSWORD }}@postgres:5432/{{ SUBSCRIBE.DB_NAME }}"
       ADMIN_EMAIL: "{{SUBSCRIBE.ADMIN_EMAIL}}"
       SECRET_KEY: "{{SUBSCRIBE.SECRET_KEY}}"

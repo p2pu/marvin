@@ -40,6 +40,7 @@
     - "/var/p2pu/volumes/p2pu-nginx/static/{{KNIGHT.DOMAIN}}/static:/var/app/static_serve"
     - "/var/p2pu/volumes/p2pu-nginx/static/{{KNIGHT.DOMAIN}}/media:/var/app/upload"
     - "/var/p2pu/volumes/knight/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/knight/log:/var/log"
     links:
     - "p2pu-postgres:postgres"
     - "knight-rabbitmq:rabbitmq"
@@ -60,3 +61,9 @@
       TWILIO_AUTH_TOKEN: "{{KNIGHT.TWILIO_AUTH_TOKEN}}"
       TWILIO_NUMBER: "{{KNIGHT.TWILIO_NUMBER}}"
       BROKER_URL: "amqp://guest:guest@rabbitmq//"
+      BACKUP_DIR: "{{BACKUP_DIR}}"
+      BACKUP_AWS_ACCESS_KEY_ID: "{{BACKUP_AWS_ACCESS_KEY_ID}}"
+      BACKUP_AWS_SECRET_ACCESS_KEY: "{{BACKUP_AWS_SECRET_ACCESS_KEY}}"
+      BACKUP_AWS_STORAGE_BUCKET_NAME: "{{BACKUP_AWS_STORAGE_BUCKET_NAME}}"
+      BACKUP_AWS_KEY_PREFIX: "{{BACKUP_AWS_KEY_PREFIX}}"
+

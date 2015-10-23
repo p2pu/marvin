@@ -1,22 +1,22 @@
 ---
-# This playbook sets up folder backups for the server.
+# This playbook sets up folder backups for the server. It expects the variable folder to be defined.
 
   - name: Install required software packages
-    apt: pkg=$item state=installed
+    apt: pkg={{item}} state=installed
     with_items:
     - python-setuptools
 
   - name: install pip and virtuan env
-    easy_install: name=$item
+    easy_install: name={{item}}
     with_items:
     - pip
     - virtualenv
 
   - name: create python virtual environment
-    command: /usr/bin/env virtualenv --system-site-packages $venv_path
+    command: /usr/bin/env virtualenv --system-site-packages {{venv_path}}
 
   - name: install virtual environment packages
-    pip: name=$item virtualenv=$venv_path
+    pip: name={{item}} virtualenv={{venv_path}}
     with_items:
     - dcu.active-memory
 

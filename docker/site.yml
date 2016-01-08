@@ -1,12 +1,40 @@
 ---
-- name: docker
-  hosts: docker
+#- name: docker host config
+#  hosts: docker
+#  sudo: yes
+#  roles:
+#  - common
+#  - angstwad.docker_ubuntu
+#  - nginx-proxy
+#  - postgres
+
+#- name: p2pu subscribe
+#  hosts: signup
+#  sudo: yes
+#  vars_files:
+#    - vars/signup.yml
+#  roles:
+#  - rabbitmq
+#  - p2pu-subscribe
+
+#- name: knight app
+#  hosts: chicago
+#  sudo: yes
+#  vars_files:
+#    - vars/chicago.yml
+#  roles:
+#  - rabbitmq
+#  - learningcircles-app
+
+- name: learningcircles
+  hosts: learningcircles
   sudo: yes
+  vars_files:
+    - vars/learningcircles.yml
   roles:
   - common
   - angstwad.docker_ubuntu
   - nginx-proxy
   - postgres
   - rabbitmq
-  - p2pu-subscribe
-  - knight-app
+  - learningcircles-app

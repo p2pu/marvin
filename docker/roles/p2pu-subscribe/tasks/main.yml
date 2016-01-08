@@ -28,7 +28,7 @@
 
 - name: start docker container
   docker:
-    name: p2pu-subscribe
+    name: "{{SUBSCRIBE.DOMAIN}}"
     image: p2pu/subscribe:latest
     state: reloaded
     restart_policy: always
@@ -38,7 +38,7 @@
     - "/var/p2pu/volumes/subscribe/celery:/var/lib/celery"
     links:
     - "p2pu-postgres:postgres"
-    - "p2pu-rabbitmq:rabbitmq"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     env:
       VIRTUAL_HOST: "{{SUBSCRIBE.DOMAIN}}"
       DATABASE_URL: "postgres://{{ SUBSCRIBE.DB_USER }}:{{ SUBSCRIBE.DB_PASSWORD }}@postgres:5432/{{ SUBSCRIBE.DB_NAME }}"

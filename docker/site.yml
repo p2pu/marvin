@@ -8,29 +8,28 @@
 #  - nginx-proxy
 #  - postgres
 
-#- name: p2pu subscribe
-#  hosts: signup
-#  sudo: yes
-#  vars_files:
-#    - vars/signup.yml
-#  roles:
-#  - rabbitmq
-#  - p2pu-subscribe
-
-#- name: knight app
-#  hosts: chicago
-#  sudo: yes
-#  vars_files:
-#    - vars/chicago.yml
-#  roles:
-#  - rabbitmq
-#  - learningcircles-app
-
 - name: learningcircles
   hosts: learningcircles
   sudo: yes
+  tags:
+  - production
   vars_files:
     - vars/learningcircles.yml
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - nginx-proxy
+  - postgres
+  - rabbitmq
+  - learningcircles-app
+
+- name: staging-learningcircles
+  hosts: staging-learningcircles
+  sudo: yes
+  tags: 
+  - staging
+  vars_files:
+  - vars/staging-learningcircles.yml
   roles:
   - common
   - angstwad.docker_ubuntu

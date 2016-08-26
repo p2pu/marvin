@@ -3,11 +3,14 @@
 - name: install git
   apt: pkg=git-core state=installed
 
-- name: get Dockerfile
-  git: repo=https://github.com/p2pu/docker-images.git dest=/var/docker-images
+- name: get application code
+  git: 
+    repo: "https://github.com/p2pu/learning-circles.git"
+    dest: "/usr/src/learningcircles"
+    version: "{{LEARNINGCIRCLES.BRANCH}}"
 
 - name: build docker image
-  docker_image: path="/var/docker-images/knight-container" name="p2pu/knight-app" state=build
+  command: docker build -t "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}" /usr/src/learningcircles
 
 - name: create postgres user
   postgresql_user:
@@ -32,7 +35,7 @@
 - name: start docker container
   docker:
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
-    image: p2pu/knight-app:latest
+    image: "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}"
     state: reloaded
     restart_policy: always
     volumes:

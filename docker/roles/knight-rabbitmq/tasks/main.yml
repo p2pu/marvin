@@ -3,6 +3,7 @@
 ---
 - name: RabbitMQ docker container
   docker:
+    docker_api_version: 1.23
     name: knight-rabbitmq
     hostname: knight-rabbitmq
     image: rabbitmq:3

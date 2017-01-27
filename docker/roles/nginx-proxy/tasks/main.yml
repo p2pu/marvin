@@ -1,16 +1,17 @@
 ---
 
-- name: Create directory
-  file: path=/var/p2pu/volumes/p2pu-nginx/certs state=directory
+#- name: Create directory
+#  file: path=/var/p2pu/volumes/p2pu-nginx/certs state=directory
 
-- name: Copy SSL certs p2pu.org.crt
-  copy: src="files/p2pu.org.crt" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.crt owner=root group=root mode=600
+#- name: Copy SSL certs p2pu.org.crt
+#  copy: src="files/p2pu.org.crt" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.crt owner=root group=root mode=600
 
-- name: Copy SSL certs p2pu.org.key
-  copy: src="files/p2pu.org.key" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.key owner=root group=root mode=600
+#- name: Copy SSL certs p2pu.org.key
+#  copy: src="files/p2pu.org.key" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.key owner=root group=root mode=600
 
 - name: Nginx proxy
   docker:
+    docker_api_version: 1.22
     name: p2pu-nginx
     image: jwilder/nginx-proxy
     state: reloaded

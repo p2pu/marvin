@@ -34,6 +34,7 @@
 
 - name: start docker container
   docker:
+    docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
     image: "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}"
     state: reloaded

@@ -1,16 +1,8 @@
 ---
-#- name: docker host config
-#  hosts: docker
-#  sudo: yes
-#  roles:
-#  - common
-#  - angstwad.docker_ubuntu
-#  - nginx-proxy
-#  - postgres
-
 - name: learningcircles
   hosts: learningcircles
-  sudo: yes
+  become: yes
+  become_method: sudo
   tags:
   - production
   vars_files:
@@ -25,7 +17,8 @@
 
 - name: staging-learningcircles
   hosts: staging-learningcircles
-  sudo: yes
+  become: yes
+  become_method: sudo
   tags: 
   - staging
   vars_files:

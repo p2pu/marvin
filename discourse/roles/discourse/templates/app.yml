@@ -26,10 +26,10 @@ env:
   DISCOURSE_HOSTNAME: 'www.example.com'
   # SET ME to your smtp server eg mandrill
   # don't forget to set mail
-  # DISCOURSE_SMTP_ADDRESS: smtp.mandrillapp.com
-  # DISCOURSE_SMTP_PORT: 587
-  # DISCOURSE_SMTP_USER_NAME: user@example.com
-  # DISCOURSE_SMTP_PASSWORD: p@ssword
+  DISCOURSE_SMTP_ADDRESS: {{ DISCOURSE_SMTP_ADDRESS }}
+  DISCOURSE_SMTP_PORT: {{ DISCOURSE_SMTP_PORT }}
+  DISCOURSE_SMTP_USER_NAME: {{ DISCOURSE_SMTP_USER_NAME }}
+  DISCOURSE_SMTP_PASSWORD: {{ DISCOURSE_SMTP_PASSWORD }}
 
 volumes:
   - volume:

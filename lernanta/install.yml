@@ -10,8 +10,6 @@
   sudo: yes
   vars:
     lernanta_venv: "/opt/lernanta_venv/"
-  vars_files:
-  - vars/credentials_${host}.yml
   tasks:
 
   - name: Update apt packages
@@ -148,7 +146,7 @@
     with_items:
     - public.crt
     - private.key
-    - intermediate.crt
+    #- intermediate.crt
 
   # TODO - After enabling the SSL host, Apache requires a password to start
   - name: enable lernanta vhost

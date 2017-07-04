@@ -25,7 +25,6 @@
 
   - name: update lernanta dependencies in virtual environment
     pip: requirements=/opt/lernanta/lernanta/requirements/prod.txt virtualenv=$lernanta_venv 
-
   - name: copy update_db sql script 
     copy: src=files/update_db.sql dest=/tmp/update_db.sql
 

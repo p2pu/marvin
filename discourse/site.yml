@@ -1,12 +1,14 @@
 ---
 - name: docker
   hosts: docker
+  sudo: yes
   tasks:
   - name: install python-pycurl
     apt: pkg=python-pycurl state=installed
 
 - name: docker
   hosts: docker
+  sudo: yes
   roles:
     - angstwad.docker_ubuntu
     - discourse

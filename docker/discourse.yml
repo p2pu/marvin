@@ -1,0 +1,11 @@
+---
+- name: discourse
+  hosts: discourse
+  become: yes
+  become_method: sudo
+  tags:
+  - discourse
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - discourse

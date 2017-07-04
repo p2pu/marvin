@@ -1,0 +1,94 @@
+- block:
+  - name: see if /swapfile is mounted
+    command: swapon --show=NAME --noheadings
+    register: swapon
+
+  - name: unmount swap if alredy mounted
+    command: swapoff /swapfile
+    when: swapon.stdout.find('/swapfile') != -1
+
+  - name: create the file to be used for swap
+    command: fallocate -l 2G /swapfile
+
+  - name: format the file for swap
+    command: mkswap /swapfile
+
+  - name: change swap file permissions
+    file: path=/swapfile owner=root group=root mode=0600
+
+  - name: add the file to the system as a swap file
+    command: swapon /swapfile
+
+  - name: write swap entry in fstab
+    mount: name=none src=/swapfile fstype=swap opts=sw passno=0 dump=0 state=present
+
+  - name: set swapiness
+    command: sysctl -w vm.swappiness=10
+
+  - name: save swapiness setting to /etc/sysctl.con
+    lineinfile:
+      line: "vm.swappiness = 10"
+      path: /etc/sysctl.conf
+
+
+- name: Group for Discourse present
+  group:
+    name: discourse
+    system: yes
+    state: present
+
+
+- name: User for Discourse present
+  user:
+    name: discourse
+    system: yes
+    state: present
+    shell: /bin/bash
+    home: /home/discourse
+    createhome: true
+    groups: discourse,docker
+
+
+- name: Directory for Discourse present
+  file:
+    dest: /var/discourse
+    state: directory
+    owner: discourse
+    group: discourse
+
+
+- name: get dicourse_docker code
+  git:
+    repo: https://github.com/discourse/discourse_docker.git
+    dest: /var/discourse
+    update: yes
+  become: yes
+  become_user: discourse 
+
+
+- name: Generate data.yml
+  template:
+    src: templates/data.yml.j2
+    dest: /var/discourse/containers/data.yml
+  become: yes
+  become_user: discourse 
+
+
+- name: Generate web_only.yml
+  template:
+    src: templates/web_only.yml.j2
+    dest: /var/discourse/containers/web_only.yml
+  become: yes
+  become_user: discourse 
+
+
+- name: Build discourse data image
+  command: /var/discourse/launcher rebuild data
+  become: yes
+  become_user: discourse 
+
+
+- name: Build discourse web_only image
+  command: /var/discourse/launcher rebuild web_only
+  become: yes
+  become_user: discourse 

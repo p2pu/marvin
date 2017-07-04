@@ -8,7 +8,7 @@
   tasks:
 
   - name: Install required software packages
-    apt: pkg=$item state=installed
+    apt: pkg=$item state=installed update_cache=yes
     with_items:
     - git
     - mysql-server
@@ -42,7 +42,9 @@
     user: name=etherpad-lite
 
   - name: check out etherpad-lite code
-    git: repo=https://github.com/ether/etherpad-lite.git dest=/opt/etherpad-lite
+    git: repo=https://github.com/ether/etherpad-lite.git dest=/opt/etherpad-lite version=release/1.2.11
+    notify:
+    - restart etherpad-lite
 
   - name: update permissions for etherpad-lite directory
     command: /bin/chown -R etherpad-lite:etherpad-lite /opt/etherpad-lite
@@ -59,11 +61,15 @@
     template: src=templates/opt_etherpad-lite_settings.json.j2 dest=/opt/etherpad-lite/settings.json mode=0640
     notify:
     - restart etherpad-lite
+    tags:
+    - etherpadconf
 
   - name: configure nginx to forward http traffic to etherpad-lite
     template: src=templates/etc_nginx_sites-available_default.j2 dest=/etc/nginx/sites-available/default
     notify:
     - restart nginx
+    tags:
+    - nginx
 
   handlers:
   - name: restart etherpad-lite

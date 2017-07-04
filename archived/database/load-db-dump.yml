@@ -9,6 +9,8 @@
 - hosts: $hosts
   user: $user
   sudo: yes
+  vars:
+    services: []
   vars_files:
   - vars/credentials_local.yml
   tasks:
@@ -18,10 +20,10 @@
     with_items: $services
 
   - name: create a backup of the current database
-    mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=dump target=/tmp/$db_name_dump.sql
+    mysql_db: name=$db_name login_user=$db_user login_password=$db_password state=dump target=/tmp/${db_name}_dump.sql
 
-  - name: copy existing database to remote server
-    copy: src=$db_dump_path dest=/tmp/${db_name}.sql.bz2
+  #- name: copy existing database to remote server
+  #  copy: src=$db_dump_path dest=/tmp/${db_name}.sql.bz2
 
   - name: uncompress database dump
     command: /bin/bunzip2 /tmp/${db_name}.sql.bz2 creates=/tmp/${db_name}.sql

@@ -7,5 +7,11 @@
     - php5-curl
     - php5-cgi
     - php5-gd
-    - libapache2-mod-php5
-  notify: restart apache
+    - php5-fpm
+  notify:
+  - restart fpm
+
+- name: configure FPM to use a socket rather than a port
+  copy: src=www.conf dest=/etc/php5/fpm/pool.d/www.conf
+  notify:
+  - restart fpm

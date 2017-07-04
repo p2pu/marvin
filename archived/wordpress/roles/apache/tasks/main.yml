@@ -1,7 +1,17 @@
 ---
-  - name: Install required software packages
-    apt: pkg={{ item }} state=installed
-    with_items:
-    - apache2
+- name: Install required software packages
+  apt: pkg={{ item }} state=installed
+  with_items:
+  - apache2
+  - libapache2-mod-fastcgi
+  notify:
+  - restart apache
+
+- name: Enable mod fastcgi
+  command: /usr/sbin/a2enmod fastcgi actions alias
+  notify:
+  - restart apache
+
+
 
 #TODO setup apache to log to remote location

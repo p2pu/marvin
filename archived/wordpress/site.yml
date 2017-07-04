@@ -8,7 +8,7 @@
 
   roles:
   - common
-  - apache
-  - mysql
   - php
+  - mysql
+  - apache
   - wordpress-lamp

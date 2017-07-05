@@ -1,12 +1,9 @@
+- name: see if /swapfile is mounted
+  command: swapon --show=NAME --noheadings
+  register: swapon
+
+# NOTE this will only create a new swapfile, it won't ensure config is up to date.
 - block:
-  - name: see if /swapfile is mounted
-    command: swapon --show=NAME --noheadings
-    register: swapon
-
-  - name: unmount swap if alredy mounted
-    command: swapoff /swapfile
-    when: swapon.stdout.find('/swapfile') != -1
-
   - name: create the file to be used for swap
     command: fallocate -l 2G /swapfile
 
@@ -29,6 +26,8 @@
     lineinfile:
       line: "vm.swappiness = 10"
       path: /etc/sysctl.conf
+
+  when: swapon.stdout.find('/swapfile') == -1
 
 
 - name: Group for Discourse present
@@ -92,3 +91,6 @@
   command: /var/discourse/launcher rebuild web_only
   become: yes
   become_user: discourse 
+
+# TODO dpkg-reconfigure -plow unattended-upgrades
+# TODO make sure ssl key is mode 600

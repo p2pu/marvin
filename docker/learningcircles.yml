@@ -1,0 +1,17 @@
+---
+- name: learningcircles
+  hosts: learningcircles
+  become: yes
+  become_method: sudo
+  tags:
+  - learningcircles
+  vars_files:
+    - vars/learningcircles.yml
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - nginx-proxy
+  - postgres
+  - rabbitmq
+  - learningcircles-app
+

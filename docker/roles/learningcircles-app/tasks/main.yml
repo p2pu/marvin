@@ -33,11 +33,12 @@
   template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}
 
 - name: start docker container
-  docker:
+  docker_container:
     docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
     image: "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}"
-    state: reloaded
+    state: started
+    restart: yes
     restart_policy: always
     volumes:
     - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/static:/var/app/static_serve"
@@ -49,6 +50,8 @@
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     env:
       VIRTUAL_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
+      LETSENCRYPT_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
+      LETSENCRYPT_EMAIL: "admin@p2pu.org"
       DOMAIN: "{{LEARNINGCIRCLES.DOMAIN}}"
       DATABASE_URL: "postgres://{{ LEARNINGCIRCLES.DB_USER }}:{{ LEARNINGCIRCLES.DB_PASSWORD }}@postgres:5432/{{LEARNINGCIRCLES.DB_NAME}}"
       ADMIN_EMAIL: "{{LEARNINGCIRCLES.ADMIN_EMAIL}}"

@@ -1,26 +1,30 @@
 ---
-
-#- name: Create directory
-#  file: path=/var/p2pu/volumes/p2pu-nginx/certs state=directory
-
-#- name: Copy SSL certs p2pu.org.crt
-#  copy: src="files/p2pu.org.crt" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.crt owner=root group=root mode=600
-
-#- name: Copy SSL certs p2pu.org.key
-#  copy: src="files/p2pu.org.key" dest=/var/p2pu/volumes/p2pu-nginx/certs/p2pu.org.key owner=root group=root mode=600
-
 - name: Nginx proxy
-  docker:
-    docker_api_version: 1.22
+  docker_container:
+    api_version: 1.22
     name: p2pu-nginx
     image: jwilder/nginx-proxy
-    state: reloaded
+    state: started
+    restart: yes
     restart_policy: always
     volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
-    - /var/p2pu/volumes/p2pu-nginx/certs:/etc/nginx/certs
+    - /var/p2pu/volumes/p2pu-nginx/certs:/etc/nginx/certs:ro
     - /var/p2pu/volumes/p2pu-nginx/vhosts.d:/etc/nginx/vhost.d
     - /var/p2pu/volumes/p2pu-nginx/static:/var/www/extra/
+    - /usr/share/nginx/html
+    labels: 
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
     ports:
     - 80:80
     - 443:443
+
+- name: Nginx letsencrypt companion container
+  docker_container:
+    name: nginx-letsencrypt-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes:
+    - /var/p2pu/volumes/p2pu-nginx/certs/:/etc/nginx/certs:rw
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from: 
+    - p2pu-nginx

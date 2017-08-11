@@ -1,16 +1,16 @@
 ---
-# TODO consider using docker images from docker hub
-- name: install git
-  apt: pkg=git-core state=installed
+# using docker images from docker hub
+#- name: install git
+#  apt: pkg=git-core state=installed
 
-- name: get application code
-  git: 
-    repo: "https://github.com/p2pu/learning-circles.git"
-    dest: "/usr/src/learningcircles"
-    version: "{{LEARNINGCIRCLES.BRANCH}}"
+#- name: get application code
+#  git: 
+#    repo: "https://github.com/p2pu/learning-circles.git"
+#    dest: "/usr/src/learningcircles"
+#    version: "{{LEARNINGCIRCLES.BRANCH}}"
 
-- name: build docker image
-  command: docker build -t "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}" /usr/src/learningcircles
+#- name: build docker image
+#  command: docker build -t "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}" /usr/src/learningcircles
 
 - name: create postgres user
   postgresql_user:
@@ -36,13 +36,14 @@
   docker_container:
     docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
-    image: "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
+    pull: yes
     restart: yes
     restart_policy: always
     volumes:
-    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/static:/var/app/static_serve"
-    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/media:/var/app/upload"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/static:/opt/app/static_serve"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/media:/opt/app/upload"
     - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/celery:/var/lib/celery"
     - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/log:/var/log"
     links:

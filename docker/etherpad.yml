@@ -1,0 +1,15 @@
+---
+- name: etherpad
+  hosts: etherpad
+  become: yes
+  become_method: sudo
+  tags:
+  - etherpad
+  vars_files:
+    - vars/etherpad.yml
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - nginx-proxy
+  - mysql
+  - etherpad

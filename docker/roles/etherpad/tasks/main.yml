@@ -1,0 +1,40 @@
+---
+
+- name: create database
+  mysql_db:
+    name: "{{ETHERPAD.DB_NAME}}"
+    encoding: "utf8"
+    login_host: 127.0.0.1
+    login_user: "root"
+    login_password: "{{MYSQL_ROOT_PASSWORD}}"
+
+- name: create database user
+  mysql_user:
+    name: "{{ETHERPAD.DB_USER}}"
+    password: "{{ETHERPAD.DB_PASSWORD}}"
+    host: "%"
+    login_host: 127.0.0.1
+    login_user: "root"
+    login_password: "{{MYSQL_ROOT_PASSWORD}}"
+    priv: "{{ETHERPAD.DB_NAME}}.*:all"
+
+
+- name: start docker container
+  docker_container:
+    name: "{{ETHERPAD.DOMAIN}}"
+    image: "p2pu/etherpad-lite"
+    state: started
+    pull: yes
+    restart: yes
+    restart_policy: always
+    links:
+    - "mysql-server:mysql"
+    env:
+      VIRTUAL_HOST: "{{ETHERPAD.DOMAIN}}"
+      LETSENCRYPT_HOST: "{{ETHERPAD.DOMAIN}}"
+      LETSENCRYPT_EMAIL: "admin@p2pu.org"
+      DOMAIN: "{{ETHERPAD.DOMAIN}}"
+      ETHERPAD_TITLE: "P2PU Etherpad"
+      ETHERPAD_DB_USER: "{{ETHERPAD.DB_USER}}"
+      ETHERPAD_DB_PASSWORD: "{{ETHERPAD.DB_PASSWORD}}"
+      ETHERPAD_DB_NAME: "{{ETHERPAD.DB_NAME}}"

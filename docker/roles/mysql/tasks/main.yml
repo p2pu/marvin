@@ -1,0 +1,29 @@
+# This role installs a docker image to run a MySQL server. The mysql server port is exposed locally so that it can be accessed on the host using the mysql client. Dependancies for using other ansible mysql commands are also installed.
+---
+- name: install dependancies to run mysql client locally
+  apt: pkg={{ item }} state=installed
+  with_items:
+  - python-mysqldb
+  - mysql-client
+
+- name: start MySQL docker image
+  docker_container:
+    name: mysql-server
+    image: mysql/mysql-server:5.7
+    state: started
+    restart: yes
+    restart_policy: always
+    published_ports:
+    - "127.0.0.1:3306:3306"
+    volumes:
+    - "/var/p2pu/volumes/mysql-server:/var/lib/mysql"
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ MYSQL_ROOT_PASSWORD }}"
+      MYSQL_ROOT_HOST: "172.17.0.1"
+
+- name: Wait for database to be available
+  shell: docker run --rm --link mysql-server:mysql mysql sh -c 'mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p{{MYSQL_ROOT_PASSWORD}} || true'
+  register: result
+  until: result.stderr.find("Can't connect to MySQL") == -1
+  retries: 10
+  delay: 3

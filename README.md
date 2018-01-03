@@ -4,7 +4,7 @@ marvin
 ![Marvin](http://info.p2pu.org/wp-content/uploads/2013/06/3356358479_a0e3ee8a05_b.jpg)
 Image CC-BY-SA [John Greenaway](http://www.flickr.com/photos/johngreenaway/)
 
-Marvin helps us to manage the services that we use at P2PU using [ansible](http://ansible.cc/).
+Marvin manages the servers we use at P2PU using [ansible](http://ansible.cc/).
 
 The typical process of using a playbook is as follows:
  

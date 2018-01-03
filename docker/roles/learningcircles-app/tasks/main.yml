@@ -1,17 +1,4 @@
 ---
-# using docker images from docker hub
-#- name: install git
-#  apt: pkg=git-core state=installed
-
-#- name: get application code
-#  git: 
-#    repo: "https://github.com/p2pu/learning-circles.git"
-#    dest: "/usr/src/learningcircles"
-#    version: "{{LEARNINGCIRCLES.BRANCH}}"
-
-#- name: build docker image
-#  command: docker build -t "p2pu/learningcircles:{{LEARNINGCIRCLES.BRANCH}}" /usr/src/learningcircles
-
 - name: create postgres user
   postgresql_user:
     name: "{{LEARNINGCIRCLES.DB_USER}}"
@@ -32,13 +19,24 @@
 - name: setup static and media file hosting through nginx-proxy
   template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}
 
-- name: start docker container
+# Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
+- set_fact:
+    lc_nginx_env:
+      VIRTUAL_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
+      LETSENCRYPT_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
+      LETSENCRYPT_EMAIL: "admin@p2pu.org"
+
+- set_fact: 
+    lc_app_env: "{{ lc_docker_env | combine(lc_nginx_env) }}"
+
+- name: start docker container for django
   docker_container:
     docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
     image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
     pull: yes
+    recreate: true
     restart: yes
     restart_policy: always
     volumes:
@@ -49,30 +47,49 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    env:
-      VIRTUAL_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
-      LETSENCRYPT_HOST: "{{LEARNINGCIRCLES.DOMAIN}}"
-      LETSENCRYPT_EMAIL: "admin@p2pu.org"
-      DOMAIN: "{{LEARNINGCIRCLES.DOMAIN}}"
-      DATABASE_URL: "postgres://{{ LEARNINGCIRCLES.DB_USER }}:{{ LEARNINGCIRCLES.DB_PASSWORD }}@postgres:5432/{{LEARNINGCIRCLES.DB_NAME}}"
-      ADMIN_EMAIL: "{{LEARNINGCIRCLES.ADMIN_EMAIL}}"
-      COMMUNITY_MANAGER_EMAIL: "{{LEARNINGCIRCLES.COMMUNITY_MANAGER_EMAIL}}"
-      SECRET_KEY: "{{LEARNINGCIRCLES.SECRET_KEY}}"
-      EMAIL_HOST: "{{LEARNINGCIRCLES.EMAIL_HOST}}"
-      EMAIL_HOST_USER: "{{LEARNINGCIRCLES.EMAIL_HOST_USER}}"
-      EMAIL_HOST_PASSWORD: "{{LEARNINGCIRCLES.EMAIL_HOST_PASSWORD}}"
-      DEFAULT_FROM_EMAIL: "{{LEARNINGCIRCLES.DEFAULT_FROM_EMAIL}}"
-      TWILIO_ACCOUNT_SID: "{{LEARNINGCIRCLES.TWILIO_ACCOUNT_SID}}"
-      TWILIO_AUTH_TOKEN: "{{LEARNINGCIRCLES.TWILIO_AUTH_TOKEN}}"
-      TWILIO_NUMBER: "{{LEARNINGCIRCLES.TWILIO_NUMBER}}"
-      BROKER_URL: "amqp://guest:guest@rabbitmq//"
-      BACKUP_DIR: "{{LEARNINGCIRCLES.BACKUP_DIR}}"
-      BACKUP_AWS_ACCESS_KEY_ID: "{{LEARNINGCIRCLES.BACKUP_AWS_ACCESS_KEY_ID}}"
-      BACKUP_AWS_SECRET_ACCESS_KEY: "{{LEARNINGCIRCLES.BACKUP_AWS_SECRET_ACCESS_KEY}}"
-      BACKUP_AWS_STORAGE_BUCKET_NAME: "{{LEARNINGCIRCLES.BACKUP_AWS_STORAGE_BUCKET_NAME}}"
-      BACKUP_AWS_KEY_PREFIX: "{{LEARNINGCIRCLES.BACKUP_AWS_KEY_PREFIX}}"
-      GA_TRACKING_ID: "{{LEARNINGCIRCLES.GA_TRACKING_ID}}"
-      MAILCHIMP_API_KEY: "{{LEARNINGCIRCLES.MAILCHIMP_API_KEY}}"
-      MAILCHIMP_LIST_ID: "{{LEARNINGCIRCLES.MAILCHIMP_LIST_ID}}"
-      MAILCHIMP_API_ROOT: "{{LEARNINGCIRCLES.MAILCHIMP_API_ROOT}}"
+    env: "{{lc_app_env}}"
 
+
+- name: start docker container for celery
+  docker_container:
+    docker_api_version: 1.22
+    name: "{{LEARNINGCIRCLES.DOMAIN}}-celery"
+    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    state: started
+    pull: yes
+    user: nobody
+    recreate: true
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/static:/opt/app/static_serve"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/media:/opt/app/upload"
+    - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/log:/var/log"
+    links:
+    - "p2pu-postgres:postgres"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
+    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
+    env: "{{lc_docker_env}}"
+
+- name: start docker container for celery beat
+  docker_container:
+    docker_api_version: 1.22
+    name: "{{LEARNINGCIRCLES.DOMAIN}}-celerybeat"
+    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    state: started
+    pull: yes
+    user: celery
+    recreate: true
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/static:/opt/app/static_serve"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LEARNINGCIRCLES.DOMAIN}}/media:/opt/app/upload"
+    - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/{{LEARNINGCIRCLES.DOMAIN}}/log:/var/log"
+    links:
+    - "p2pu-postgres:postgres"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
+    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
+    env: "{{lc_docker_env}}"

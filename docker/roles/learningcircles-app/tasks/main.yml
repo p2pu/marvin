@@ -57,7 +57,7 @@
     image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
     pull: yes
-    user: nobody
+    user: celery
     recreate: true
     restart: yes
     restart_policy: always

@@ -11,7 +11,7 @@ To use the Ansible playbooks, you need to
 1. [install ansible](http://ansible.cc/docs/gettingstarted.html) on your local host.
 1. setup credentials (copy files from AWS S3 to ./host_vars and ./vars
 1. setup access to the remote hosts: copy your public key to the remote host: `ssh-copy-id -i ~/.ssh/id_rsa.pub user@host.org`
-1. put the vault password in ~/.vault_pass.txt
+1. put the vault password in ~/.vault_pass.txt on your local host
 1. run the relevant playbook: `ansible-playbook -v --vault-password-file=~/.vault_pass.txt -i inventory.ini learningcircles.yml`
 
 Currently there are 3 different plays to run:

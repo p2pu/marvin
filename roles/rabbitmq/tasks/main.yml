@@ -2,13 +2,14 @@
 
 ---
 - name: RabbitMQ docker container
-  docker:
+  docker_container:
     docker_api_version: 1.22
     name: "{{RABBITMQ_HOSTNAME}}"
     hostname: "{{RABBITMQ_HOSTNAME}}"
     image: rabbitmq:3
-    pull: always
-    state: reloaded
+    pull: yes
+    state: started
+    restart: yes
     restart_policy: always
     volumes:
     - "/var/p2pu/volumes/{{RABBITMQ_HOSTNAME}}:/var/lib/rabbitmq"

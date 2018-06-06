@@ -1,0 +1,99 @@
+---
+- name: create database
+  mysql_db:
+    name: "{{LERNANTA.DB_NAME}}"
+    encoding: "utf8"
+    login_host: 127.0.0.1
+    login_user: "root"
+    login_password: "{{MYSQL_ROOT_PASSWORD}}"
+
+- name: create database user
+  mysql_user:
+    name: "{{LERNANTA.DB_USER}}"
+    password: "{{LERNANTA.DB_PASSWORD}}"
+    host: "%"
+    login_host: 127.0.0.1
+    login_user: "root"
+    login_password: "{{MYSQL_ROOT_PASSWORD}}"
+    priv: "{{LERNANTA.DB_NAME}}.*:all"
+
+- name: setup static and media file hosting through nginx-proxy
+  template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LERNANTA.DOMAIN}}
+
+# Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
+- set_fact:
+    lc_nginx_env:
+      VIRTUAL_HOST: "{{LERNANTA.DOMAIN}}"
+      LETSENCRYPT_HOST: "{{LERNANTA.DOMAIN}}"
+      LETSENCRYPT_EMAIL: "admin@p2pu.org"
+
+- set_fact: 
+    lc_app_env: "{{ lc_docker_env | combine(lc_nginx_env) }}"
+
+- name: create media directories
+  file: state=directory path=/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/media/uploads/images
+
+- name: start docker container for django
+  docker_container:
+    docker_api_version: 1.22
+    name: "{{LERNANTA.DOMAIN}}"
+    image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
+    state: started
+    pull: yes
+    recreate: true
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/static:/opt/app/lernanta/static_serv"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/media:/opt/app/lernanta/media"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/log:/var/log"
+    links:
+    - "mysql-server:mysql"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
+    env: "{{lc_app_env}}"
+
+
+- name: start docker container for celery
+  docker_container:
+    docker_api_version: 1.22
+    name: "{{LERNANTA.DOMAIN}}-celery"
+    image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
+    state: started
+    pull: yes
+    user: celery
+    recreate: true
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/static:/opt/app/lernanta/static_serv"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/media:/opt/app/lernanta/media"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/log:/var/log"
+    links:
+    - "mysql-server:mysql"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
+    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
+    env: "{{lc_docker_env}}"
+
+- name: start docker container for celery beat
+  docker_container:
+    docker_api_version: 1.22
+    name: "{{LERNANTA.DOMAIN}}-celerybeat"
+    image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
+    state: started
+    pull: yes
+    user: celery
+    recreate: true
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/static:/opt/app/lernanta/static_serv"
+    - "/var/p2pu/volumes/p2pu-nginx/static/{{LERNANTA.DOMAIN}}/media:/opt/app/lernanta/media"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/celery:/var/lib/celery"
+    - "/var/p2pu/volumes/{{LERNANTA.DOMAIN}}/log:/var/log"
+    links:
+    - "mysql-server:mysql"
+    - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
+    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
+    env: "{{lc_docker_env}}"

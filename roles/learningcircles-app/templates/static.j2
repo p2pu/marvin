@@ -1,5 +1,7 @@
 location /static/ {    
-    autoindex on;    
+    autoindex on;
+    gzip on;
+    gzip_min_length 1000;
     root   /var/www/extra/{{LEARNINGCIRCLES.DOMAIN}};
 }
 

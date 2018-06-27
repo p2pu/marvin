@@ -1,0 +1,19 @@
+---
+- name: setup redirect for p2pu.org
+  template: src=redirect.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/p2pu.org_location
+
+
+- name: start dummy docker container to trick nginx into serving files and generate ssl
+  docker_container:
+    name: "p2pu-redirect"
+    image: "busybox"
+    state: started
+    pull: yes
+    recreate: true
+    restart: yes
+    restart_policy: always
+    command: sh -c "while true; do sleep 1; done;"
+    env:
+      VIRTUAL_HOST: p2pu.org
+      LETSENCRYPT_HOST: p2pu.org
+      LETSENCRYPT_EMAIL: "admin@p2pu.org"

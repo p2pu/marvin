@@ -31,6 +31,7 @@ env:
   ## With 2GB we recommend 3-4 workers, with 1GB only 2
   ## If you have lots of memory, use one or two workers per logical CPU core
   UNICORN_WORKERS: {{DISCOURSE_UNICORN_WORKERS}}
+  DISCOURSE_ENABLE_CORS: true
 
   ## TODO: configure connectivity to the databases
   DISCOURSE_DB_SOCKET: ''

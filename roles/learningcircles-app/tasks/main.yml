@@ -31,7 +31,6 @@
 
 - name: start docker container for django
   docker_container:
-    docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
     image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
@@ -52,7 +51,6 @@
 
 - name: start docker container for celery
   docker_container:
-    docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celery"
     image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
@@ -74,7 +72,6 @@
 
 - name: start docker container for celery beat
   docker_container:
-    docker_api_version: 1.22
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celerybeat"
     image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started

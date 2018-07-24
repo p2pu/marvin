@@ -9,7 +9,7 @@
 - name: start MySQL docker image
   docker_container:
     name: mysql-server
-    image: mysql/mysql-server:5.7
+    image: "mysql/mysql-server:{{MYSQL_VERSION}}"
     state: started
     restart: yes
     restart_policy: always

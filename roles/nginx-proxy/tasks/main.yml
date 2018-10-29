@@ -1,7 +1,6 @@
 ---
 - name: Nginx proxy
   docker_container:
-    api_version: 1.22
     name: p2pu-nginx
     image: jwilder/nginx-proxy
     state: started

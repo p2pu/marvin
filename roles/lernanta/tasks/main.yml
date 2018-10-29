@@ -35,7 +35,6 @@
 
 - name: start docker container for django
   docker_container:
-    docker_api_version: 1.22
     name: "{{LERNANTA.DOMAIN}}"
     image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
     state: started
@@ -56,7 +55,6 @@
 
 - name: start docker container for celery
   docker_container:
-    docker_api_version: 1.22
     name: "{{LERNANTA.DOMAIN}}-celery"
     image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
     state: started
@@ -73,12 +71,11 @@
     links:
     - "mysql-server:mysql"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
+    command: bash -c "mkdir -p /var/log/celery/ && touch /var/log/celery/w1.log && /opt/django-venv/bin/python /opt/app/lernanta/manage.py celeryd --settings=lernanta.settings --logfile=/var/log/celery/worker.log"
     env: "{{lc_docker_env}}"
 
 - name: start docker container for celery beat
   docker_container:
-    docker_api_version: 1.22
     name: "{{LERNANTA.DOMAIN}}-celerybeat"
     image: "p2pu/lernanta:{{LERNANTA.BRANCH}}"
     state: started
@@ -95,5 +92,5 @@
     links:
     - "mysql-server:mysql"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
+    command: bash -c "mkdir -p /var/log/celery/ && touch /var/log/celery/beat.log && /opt/django-venv/bin/python /opt/app/lernanta/manage.py celeryd --beat --settings=lernanta.settings --logfile=/var/log/celery/beat.log" 
     env: "{{lc_docker_env}}"

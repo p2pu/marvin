@@ -3,7 +3,6 @@
 ---
 - name: RabbitMQ docker container
   docker_container:
-    docker_api_version: 1.22
     name: "{{RABBITMQ_HOSTNAME}}"
     hostname: "{{RABBITMQ_HOSTNAME}}"
     image: rabbitmq:3

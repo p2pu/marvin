@@ -1,0 +1,18 @@
+---
+- name: lernanta
+  hosts: lernanta
+  become: yes
+  become_method: sudo
+  tags:
+  - lernanta
+  vars_files:
+    - vars/lernanta.yml
+  roles:
+  - common
+  - angstwad.docker_ubuntu
+  - nginx-proxy
+  - p2pu-redirect
+  - role: mysql
+    MYSQL_VERSION: 5.5
+  - rabbitmq
+  - lernanta

@@ -10,7 +10,6 @@
 
 - name: start postgres docker image
   docker_container:
-    docker_api_version: 1.22
     name: p2pu-postgres
     image: postgres:9.3
     state: started

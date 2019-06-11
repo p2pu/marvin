@@ -19,6 +19,13 @@
 - name: setup static and media file hosting through nginx-proxy
   template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}
 
+# Doing this before restarting the containers, keeps the currently running image + container
+- name: Remove old docker images & containers
+  docker_prune:
+    images: yes
+    containers: yes
+    builder_cache: yes
+
 # Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
 - set_fact:
     lc_nginx_env:

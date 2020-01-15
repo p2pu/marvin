@@ -54,6 +54,9 @@
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     env: "{{lc_app_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: django
 
 
 - name: start docker container for celery
@@ -76,6 +79,10 @@
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
     env: "{{lc_docker_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: celery
+
 
 - name: start docker container for celery beat
   docker_container:
@@ -97,3 +104,6 @@
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
     env: "{{lc_docker_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: celery-beat

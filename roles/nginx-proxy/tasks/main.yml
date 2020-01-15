@@ -3,6 +3,7 @@
   docker_container:
     name: p2pu-nginx
     image: jwilder/nginx-proxy
+    pull: true
     state: started
     restart: yes
     restart_policy: always
@@ -22,6 +23,8 @@
   docker_container:
     name: nginx-letsencrypt-companion
     image: jrcs/letsencrypt-nginx-proxy-companion
+    pull: true
+    restart_policy: always
     volumes:
     - /var/p2pu/volumes/p2pu-nginx/certs/:/etc/nginx/certs:rw
     - /var/run/docker.sock:/var/run/docker.sock:ro

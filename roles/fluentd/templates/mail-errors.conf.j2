@@ -1,0 +1,44 @@
+# get logs from fluent-logger, fluent-cat or other fluentd instances
+<source>
+  @type forward
+</source>
+
+<match * >
+  @type rewrite_tag_filter
+  <rule>
+    key source 
+    pattern stderr
+    tag ${tag}.error
+  </rule>
+</match>
+
+<match *.error >
+  @type grepcounter
+  count_interval 300
+  input_key log
+  regexp .+$
+  threshold 1
+  add_tag_suffix send
+  delimiter \n
+</match>
+
+<match *.error.send >
+  @type copy
+  <store>
+    @type stdout
+  </store>
+  <store>
+    @type mail
+    host "#{ENV['EMAIL_HOST']}"
+    port 587
+    user "#{ENV['EMAIL_HOST_USER']}"
+    password "#{ENV['EMAIL_HOST_PASSWORD']}"
+    enable_starttls_auto true
+    from "#{ENV['EMAIL_HOST_USER']}"
+    to "#{ENV['ADMIN_EMAIL']}"
+    subject '[Error: %s] Application error'
+    subject_out_keys input_tag
+    message An errror occurred in %s\n\n%s\n\n--END of %s lines.
+    message_out_keys input_tag,message,count
+  </store>
+</match>

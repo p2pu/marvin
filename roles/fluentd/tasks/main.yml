@@ -1,0 +1,27 @@
+---
+- name: make sure directory is present
+  file: state=directory path=/var/p2pu/volumes/fluentd/
+
+- name: config for forwarding mail
+  template: src=mail-errors.conf.j2 dest=/var/p2pu/volumes/fluentd/mail-errors.conf
+
+- name: start fluentd docker image
+  docker_container:
+    name: fluentd
+    image: p2pu/fluentd-docker
+    state: started
+    pull: yes
+    restart: yes
+    restart_policy: always
+    ports:
+    - 127.0.0.1:24224:24224
+    volumes:
+    - "/var/p2pu/volumes/fluentd/mail-errors.conf:/fluentd/etc/mail-errors.conf"
+    command: fluentd -c /fluentd/etc/mail-errors.conf -q
+    env:
+      EMAIL_HOST: "{{LEARNINGCIRCLES.EMAIL_HOST}}"
+      EMAIL_HOST_USER: "{{LEARNINGCIRCLES.EMAIL_HOST_USER}}"
+      EMAIL_HOST_PASSWORD: "{{LEARNINGCIRCLES.EMAIL_HOST_PASSWORD}}"
+      ADMIN_EMAIL: "{{LEARNINGCIRCLES.ADMIN_EMAIL}}"
+
+

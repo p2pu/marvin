@@ -19,6 +19,13 @@
 - name: setup static and media file hosting through nginx-proxy
   template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}
 
+# Doing this before restarting the containers, keeps the currently running image + container
+- name: Remove old docker images & containers
+  docker_prune:
+    images: yes
+    containers: yes
+    builder_cache: yes
+
 # Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
 - set_fact:
     lc_nginx_env:
@@ -47,6 +54,9 @@
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
     env: "{{lc_app_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: django
 
 
 - name: start docker container for celery
@@ -67,8 +77,12 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
+    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=ERROR -q
     env: "{{lc_docker_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: celery
+
 
 - name: start docker container for celery beat
   docker_container:
@@ -88,5 +102,8 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
+    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=ERROR --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule -q
     env: "{{lc_docker_env}}"
+    log_driver: fluentd
+    log_options:
+        tag: celery-beat

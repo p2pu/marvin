@@ -1,4 +1,4 @@
 ---
 - name: install python-pycurl
-  apt: pkg=python-pycurl state=installed
+  apt: pkg=python-pycurl state=present
 

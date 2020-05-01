@@ -1,7 +1,7 @@
-# This role installs a docker image to run a MySQL server. The mysql server port is exposed locally so that it can be accessed on the host using the mysql client. Dependancies for using other ansible mysql commands are also installed.
+# This role installs a docker image to run a MySQL server. The mysql server port is exposed locally so that it can be accessed on the host using the mysql client. Dependancies for using other ansible mysql commands are also present.
 ---
 - name: install dependencies to run mysql client locally
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
   - python-mysqldb
   - mysql-client

@@ -1,40 +1,45 @@
 ---
+- name: create dir for etherpad
+  file: path=/var/docker-volumes/etherpad state=directory
 
-- name: create database
-  mysql_db:
-    name: "{{ETHERPAD.DB_NAME}}"
-    encoding: "utf8"
-    login_host: 127.0.0.1
-    login_user: "root"
-    login_password: "{{MYSQL_ROOT_PASSWORD}}"
+# uh_etherpad_session_key
+- name: create session key
+  copy:
+    dest: /var/docker-volumes/etherpad/SESSIONKEY.txt
+    content: "{{ETHERPAD_SESSION_KEY}}"
+    mode: "640"
+    owner: 5001
 
-- name: create database user
-  mysql_user:
-    name: "{{ETHERPAD.DB_USER}}"
-    password: "{{ETHERPAD.DB_PASSWORD}}"
-    host: "%"
-    login_host: 127.0.0.1
-    login_user: "root"
-    login_password: "{{MYSQL_ROOT_PASSWORD}}"
-    priv: "{{ETHERPAD.DB_NAME}}.*:all"
-
+# uh_etherpad_api_key
+- name: create api key
+  copy:
+    dest: /var/docker-volumes/etherpad/APIKEY.txt
+    content: "{{ETHERPAD_API_KEY}}"
+    mode: "640"
+    owner: 5001
 
 - name: start docker container
   docker_container:
-    name: "{{ETHERPAD.DOMAIN}}"
-    image: "p2pu/etherpad-lite"
+    name: "{{ETHERPAD_DOMAIN}}"
+    image: "etherpad/etherpad"
     state: started
     pull: yes
     restart: yes
     restart_policy: always
     links:
-    - "mysql-server:mysql"
+    - "{{POSTGRES_CONTAINER}}:postgres"
+    volumes:
+    - /var/docker-volumes/etherpad/APIKEY.txt:/opt/etherpad-lite/APIKEY.txt
+    - /var/docker-volumes/etherpad/SESSIONKEY.txt:/opt/etherpad-lite/SESSIONKEY.txt
     env:
-      VIRTUAL_HOST: "{{ETHERPAD.DOMAIN}}"
-      LETSENCRYPT_HOST: "{{ETHERPAD.DOMAIN}}"
-      LETSENCRYPT_EMAIL: "admin@p2pu.org"
-      DOMAIN: "{{ETHERPAD.DOMAIN}}"
-      ETHERPAD_TITLE: "P2PU Etherpad"
-      ETHERPAD_DB_USER: "{{ETHERPAD.DB_USER}}"
-      ETHERPAD_DB_PASSWORD: "{{ETHERPAD.DB_PASSWORD}}"
-      ETHERPAD_DB_NAME: "{{ETHERPAD.DB_NAME}}"
+      VIRTUAL_HOST: "{{ETHERPAD_DOMAIN}}"
+      LETSENCRYPT_HOST: "{{ETHERPAD_DOMAIN}}"
+      LETSENCRYPT_EMAIL: "{{LETSENCRYPT_EMAIL}}"
+      DOMAIN: "{{ETHERPAD_DOMAIN}}"
+      ETHERPAD_TITLE: "{{ETHERPAD_TITLE}}"
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_NAME: "{{ETHERPAD_DB_NAME}}"
+      DB_USER: "{{ETHERPAD_DB_USER}}"
+      DB_PASS: "{{ETHERPAD_DB_PASSWORD}}"
+      ADMIN_PASSWORD: "{{ETHERPAD_ADMIN_PASSWORD}}"

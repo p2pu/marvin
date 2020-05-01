@@ -81,14 +81,21 @@
   become_user: discourse 
 
 
+- name: Remove old docker images
+  docker_prune:
+    images: yes
+    containers: yes
+    builder_cache: yes
+
+
 - name: Build discourse data image
-  command: /var/discourse/launcher rebuild data
+  command: /var/discourse/launcher rebuild data --skip-prereqs
   become: yes
   become_user: discourse 
 
 
 - name: Build discourse web_only image
-  command: /var/discourse/launcher rebuild web_only
+  command: /var/discourse/launcher rebuild web_only --skip-prereqs
   become: yes
   become_user: discourse 
 

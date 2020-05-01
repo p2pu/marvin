@@ -14,7 +14,7 @@
     pkg:
       - xserver-xorg-lts-trusty
       - libgl1-mesa-glx-lts-trusty
-    state: installed
+    state: present
     update_cache: yes
     cache_valid_time: 600
   register: xorg_pkg_result

@@ -7,9 +7,16 @@
   - etherpad
   vars_files:
     - vars/etherpad.yml
+  vars:
+    POSTGRES_CONTAINER: p2pu-postgres 
   roles:
   - common
   - angstwad.docker_ubuntu
   - nginx-proxy
-  - mysql
+  - postgres
+  - role: postgres_role
+    vars:
+      DB_NAME: "{{ETHERPAD_DB_NAME}}"
+      DB_USER: "{{ETHERPAD_DB_USER}}"
+      DB_PASSWORD: "{{ETHERPAD_DB_PASSWORD}}"
   - etherpad

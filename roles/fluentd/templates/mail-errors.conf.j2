@@ -14,7 +14,7 @@
 
 <match *.error >
   @type grepcounter
-  count_interval 10
+  count_interval 300
   input_key log
   regexp .+$
   threshold 1
@@ -36,7 +36,9 @@
     enable_starttls_auto true
     from "#{ENV['EMAIL_HOST_USER']}"
     to "#{ENV['ADMIN_EMAIL']}"
-    subject 'Application error'
-    out_keys count,message
+    subject '[Error: %s] Application error'
+    subject_out_keys input_tag
+    message An errror occurred in %s\n\n%s\n\n--END of %s lines.
+    message_out_keys input_tag,message,count
   </store>
 </match>

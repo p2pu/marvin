@@ -5,7 +5,7 @@
 - name: config for forwarding mail
   template: src=mail-errors.conf.j2 dest=/var/p2pu/volumes/fluentd/mail-errors.conf
 
-- name: start postgres docker image
+- name: start fluentd docker image
   docker_container:
     name: fluentd
     image: p2pu/fluentd-docker

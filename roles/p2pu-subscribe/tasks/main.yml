@@ -1,6 +1,6 @@
 ---
 - name: install git
-  apt: pkg=git-core state=installed
+  apt: pkg=git-core state=present
 
 - name: get Dockerfile
   git: repo=https://github.com/p2pu/docker-images.git dest=/var/docker-images

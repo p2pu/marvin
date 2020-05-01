@@ -77,7 +77,7 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO 
+    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=ERROR -q
     env: "{{lc_docker_env}}"
     log_driver: fluentd
     log_options:
@@ -102,7 +102,7 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=DEBUG --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule 
+    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=ERROR --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule -q
     env: "{{lc_docker_env}}"
     log_driver: fluentd
     log_options:

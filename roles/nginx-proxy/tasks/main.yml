@@ -1,4 +1,8 @@
 ---
+
+- name: Create proxy wide vars
+  template: src=extra.j2 dest=/var/p2pu/volumes/p2pu-nginx/extra.conf
+
 - name: Nginx proxy
   docker_container:
     name: p2pu-nginx
@@ -10,6 +14,7 @@
     volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
     - /var/p2pu/volumes/p2pu-nginx/certs:/etc/nginx/certs:ro
+    - /var/p2pu/volumes/p2pu-nginx/extra.conf:/etc/nginx/conf.d/extra.conf:ro
     - /var/p2pu/volumes/p2pu-nginx/vhosts.d:/etc/nginx/vhost.d
     - /var/p2pu/volumes/p2pu-nginx/static:/var/www/extra/
     - /usr/share/nginx/html

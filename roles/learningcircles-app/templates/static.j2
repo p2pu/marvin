@@ -6,7 +6,7 @@ gzip_proxied any;
 gzip_comp_level 6;
 gzip_buffers 16 8k;
 gzip_http_version 1.1;
-gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
 location = /robots.txt {
     return 200 "User-agent: *\nDisallow: /\n";
@@ -17,11 +17,9 @@ location = /favicon.ico {
 }
 
 location /static/ {    
-    autoindex on;
     root   /var/www/extra/{{LEARNINGCIRCLES.DOMAIN}};
 }
 
 location /media/ {    
-    autoindex on;    
     root   /var/www/extra/{{LEARNINGCIRCLES.DOMAIN}};
 }

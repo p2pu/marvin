@@ -11,7 +11,7 @@
     POSTGRES_CONTAINER: p2pu-postgres 
   roles:
   - common
-  - angstwad.docker_ubuntu
+  - docker_ubuntu
   - nginx-proxy
   - postgres
   - role: postgres_role
@@ -20,3 +20,7 @@
       DB_USER: "{{ETHERPAD_DB_USER}}"
       DB_PASSWORD: "{{ETHERPAD_DB_PASSWORD}}"
   - etherpad
+  - role: postgres_backup
+    vars:
+      DB_NAME: "{{ETHERPAD_DB_NAME}}"
+    tags: ['backup']

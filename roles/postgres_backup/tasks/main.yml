@@ -1,0 +1,24 @@
+---
+## add cron job to run postgres backup
+
+- name: create dir for backups
+  file: path=/var/docker-volumes/etherpad/backups/ state=directory mode=750
+
+- name: Create env file
+  template:
+    src: backup.env
+    dest: /root/backup.env
+    mode: 0640
+
+- name: copy backup script
+  template: src=backup.sh dest=/var/docker-volumes/etherpad/backup.sh mode=770
+
+- name: Run checks once a day
+  cron:
+    name: "backup db"
+    minute: "0"
+    hour: "2"
+    job: /var/docker-volumes/etherpad/backup.sh
+
+
+## add cron job to upload and rotate backups

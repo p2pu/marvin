@@ -18,12 +18,31 @@
     mode: "640"
     owner: 5001
 
+- name: clone etherpad repo
+  git:
+    repo: https://github.com/ether/etherpad-lite.git
+    dest: /usr/local/src/etherpad
+    version: "1.8.4"
+
+- name: Build docker iamge
+  docker_image:
+    name: p2pu/etherpad
+    build:
+      path: /usr/local/src/etherpad
+      pull: yes
+      args: 
+        ETHERPAD_PLUGINS: "ep_headings2 ep_font_size"
+    tag: latest
+    source: build
+    force_source: yes
+    state: present
+
 - name: start docker container
   docker_container:
     name: "{{ETHERPAD_DOMAIN}}"
-    image: "etherpad/etherpad"
+    image: "p2pu/etherpad"
     state: started
-    pull: yes
+    pull: no
     restart: yes
     restart_policy: always
     links:

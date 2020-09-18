@@ -9,25 +9,12 @@
     - vars/learningcircles.yml
   roles:
   - common
-  - angstwad.docker_ubuntu
+  - docker_ubuntu
+  - monitor
+  - fluentd
   - nginx-proxy
   - postgres
   - rabbitmq
   - learningcircles-app
-
-- name: staging-learningcircles
-  hosts: staging-learningcircles
-  become: yes
-  become_method: sudo
-  tags:
-  - staging
-  vars_files:
-    - vars/staging-learningcircles.yml
-  roles:
-  - common
-  - angstwad.docker_ubuntu
-  - nginx-proxy
-  - postgres
-  - rabbitmq
-  - learningcircles-app
-
+  - p2pu-redirect
+  - howto-redirect

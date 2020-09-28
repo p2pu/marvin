@@ -1,0 +1,33 @@
+---
+- name: copy files
+  copy:
+    src: p2pu-netwell
+    dest: /usr/local/src
+    mode: preserve
+
+# ensure docker image is present
+- name: build image
+  docker_image:
+    name: p2pu/netwell-mailer
+    build:
+      path: /usr/local/src/p2pu-netwell
+      pull: yes
+    tag: latest
+    source: build
+    force_source: yes
+    state: present
+
+# create .env file
+- name: Create env file
+  template:
+    src: p2pu-netwell.env
+    dest: /usr/local/etc/p2pu-netwell.env
+    mode: 0640
+
+# add cron job to run checks
+- name: Run checks once a day
+  cron:
+    name: "check dirs"
+    minute: "0"
+    hour: "2"
+    job: "docker run --rm -t --env-file /usr/local/etc/p2pu-netwell.env p2pu/netwell-mailer"

@@ -1,12 +1,13 @@
 # This role install a docker image to run a postgres server. The postgres port is exposed locally so that it can be accesses using psql. Dependancies for using other ansible postgresql commands are also present
 
 ---
-- name: install dependencies to run psql locally
+- name: install dependencies to run psql locally and ansible postgres modules
   apt: 
     pkg:
     - postgresql-client
     - libpq-dev
     - python-psycopg2
+    - python3-psycopg2
     state: present
 
 - name: start postgres docker image
@@ -31,4 +32,3 @@
   until: result.stdout.find("accepting connections") != -1
   retries: 10
   delay: 10
-

@@ -1,0 +1,18 @@
+---
+- name: staging-learningcircles
+  hosts: staging-learningcircles
+  become: yes
+  become_method: sudo
+  tags:
+  - staging
+  vars_files:
+    - vars/staging-learningcircles.yml
+  roles:
+  - common
+  - docker_ubuntu
+  - monitor
+  - fluentd
+  - nginx-proxy
+  - postgres
+  - rabbitmq
+  - learningcircles-app

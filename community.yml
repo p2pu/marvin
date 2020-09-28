@@ -1,6 +1,6 @@
 ---
-- name: discourse
-  hosts: discourse
+- name: community
+  hosts: community
   become: yes
   become_method: sudo
   roles:

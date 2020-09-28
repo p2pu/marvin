@@ -38,6 +38,8 @@ nosetests.xml
 .vagrant
 
 # Local credentials
+vars/*
+host_vars/*
 badges/vars/credentials_badges-vm.yml
 credentials_*.yml
 

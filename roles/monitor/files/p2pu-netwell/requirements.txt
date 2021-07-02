@@ -1,8 +1,10 @@
 certifi==2020.6.20
 chardet==3.0.4
+docker==5.0.0
 idna==2.10
 netwell==0.4.0
 python-dateutil==2.8.1
 requests==2.24.0
 six==1.15.0
 urllib3==1.25.10
+websocket-client==1.1.0

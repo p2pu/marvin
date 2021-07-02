@@ -30,4 +30,4 @@
     name: "check dirs"
     minute: "0"
     hour: "2"
-    job: "docker run --rm -t --env-file /usr/local/etc/p2pu-netwell.env p2pu/netwell-mailer"
+    job: "docker run -v /var/run/docker.sock:/var/run/docker.sock:ro --rm -t --env-file /usr/local/etc/p2pu-netwell.env p2pu/netwell-mailer"

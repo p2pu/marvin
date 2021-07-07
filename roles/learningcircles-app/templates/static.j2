@@ -9,7 +9,7 @@ gzip_http_version 1.1;
 gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
 location = /robots.txt {
-    return 200 "User-agent: *\nDisallow: /\n";
+    return 200 "User-agent: *\nDisallow: /api/\n";
 }
 
 location = /favicon.ico {

@@ -1,4 +1,26 @@
 ---
+- name: Remove old docker images & containers
+  docker_prune:
+    images: yes
+    containers: yes
+
+- name: get code from git
+  git: 
+    dest: /usr/local/src/learning-circles
+    repo: https://github.com/p2pu/learning-circles.git
+    version: "{{LEARNINGCIRCLES.BRANCH}}"
+
+- name: Build docker image
+  docker_image:
+    name: local/learning-circles
+    build:
+      path: /usr/local/src/learning-circles
+      pull: yes
+    tag: "{{LEARNINGCIRCLES.BRANCH}}"
+    source: build
+    force_source: yes
+    state: present
+
 - name: create postgres user
   postgresql_user:
     name: "{{LEARNINGCIRCLES.DB_USER}}"
@@ -19,12 +41,15 @@
 - name: setup static and media file hosting through nginx-proxy
   template: src=static.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}
 
+- name: setup location section for nginx
+  template: src=domain_location.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}_location
+
 # Doing this before restarting the containers, keeps the currently running image + container
-- name: Remove old docker images & containers
-  docker_prune:
-    images: yes
-    containers: yes
-    builder_cache: yes
+#- name: Remove old docker images & containers
+#  docker_prune:
+#    images: yes
+#    containers: yes
+#    builder_cache: yes
 
 # Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
 - set_fact:
@@ -39,9 +64,9 @@
 - name: start docker container for django
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
-    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
-    pull: yes
+    pull: no
     recreate: true
     restart: yes
     restart_policy: always
@@ -62,9 +87,9 @@
 - name: start docker container for celery
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celery"
-    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
-    pull: yes
+    pull: no
     user: celery
     recreate: true
     restart: yes
@@ -77,19 +102,19 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=ERROR -q
+    command: /opt/django-venv/bin/celery worker -A learnwithpeople --loglevel=INFO
     env: "{{lc_docker_env}}"
-    log_driver: fluentd
-    log_options:
-        tag: celery
+    #log_driver: fluentd
+    #log_options:
+    #    tag: celery
 
 
 - name: start docker container for celery beat
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celerybeat"
-    image: "p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
     state: started
-    pull: yes
+    pull: no
     user: celery
     recreate: true
     restart: yes
@@ -102,8 +127,8 @@
     links:
     - "p2pu-postgres:postgres"
     - "{{RABBITMQ_HOSTNAME}}:rabbitmq"
-    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=ERROR --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule -q
+    command: /opt/django-venv/bin/celery beat -A learnwithpeople --loglevel=INFO --pidfile=/var/lib/celery/celerybeat.pid --schedule=/var/lib/celery/celerybeat-schedule
     env: "{{lc_docker_env}}"
-    log_driver: fluentd
-    log_options:
-        tag: celery-beat
+    #log_driver: fluentd
+    #log_options:
+    #    tag: celery-beat

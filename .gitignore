@@ -45,3 +45,4 @@ credentials_*.yml
 
 # Vim temp files
 *.swp
+*.retry

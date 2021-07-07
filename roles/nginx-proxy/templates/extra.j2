@@ -3,3 +3,11 @@ client_max_body_size 10m;
 
 gzip on;
 gzip_types text/plain text/css application/json application/x-javascript application/javascript text/xml application/xml application/xml+rss text/javascript application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml image/x-icon;
+
+map $request_method $limit {
+    default     "";
+    POST        $binary_remote_addr;
+}
+
+# Creates 10mb zone in memory for storing binary ips
+limit_req_zone $limit zone=post_zone:10m rate=6r/m;

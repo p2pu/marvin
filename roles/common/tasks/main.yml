@@ -1,6 +1,10 @@
 ---
-- name: install python-pycurl
-  apt: pkg=python-pycurl state=present
+#- name: install python-pycurl
+#  apt: pkg=python-pycurl state=present
+
+# acl is needed on ubuntu 20.04 and later for become plugin to work
+- name: install acl
+  apt: pkg=acl state=present
 
 - name: Install ntp
   apt: pkg=ntp state=present

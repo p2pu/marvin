@@ -1,23 +1,32 @@
 ---
+- set_fact: 
+    docker_image_name: "ghcr.io/p2pu/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+
 - name: Remove old docker images & containers
   docker_prune:
     images: yes
     containers: yes
 
-- name: get code from git
-  git: 
-    dest: /usr/local/src/learning-circles
-    repo: https://github.com/p2pu/learning-circles.git
-    version: "{{LEARNINGCIRCLES.BRANCH}}"
+#- name: get code from git
+#  git: 
+#    dest: /usr/local/src/learning-circles
+#    repo: https://github.com/p2pu/learning-circles.git
+#    version: "{{LEARNINGCIRCLES.BRANCH}}"
 
-- name: Build docker image
+#- name: Build docker image
+#  docker_image:
+#    name: local/learning-circles
+#    build:
+#      path: /usr/local/src/learning-circles
+#      pull: yes
+#    tag: "{{LEARNINGCIRCLES.BRANCH}}"
+#    source: build
+#    force_source: yes
+#    state: present
+
+- name: Pull docker image
   docker_image:
-    name: local/learning-circles
-    build:
-      path: /usr/local/src/learning-circles
-      pull: yes
-    tag: "{{LEARNINGCIRCLES.BRANCH}}"
-    source: build
+    name: "{{docker_image_name}}"
     force_source: yes
     state: present
 
@@ -44,13 +53,6 @@
 - name: setup location section for nginx
   template: src=domain_location.j2 dest=/var/p2pu/volumes/p2pu-nginx/vhosts.d/{{LEARNINGCIRCLES.DOMAIN}}_location
 
-# Doing this before restarting the containers, keeps the currently running image + container
-#- name: Remove old docker images & containers
-#  docker_prune:
-#    images: yes
-#    containers: yes
-#    builder_cache: yes
-
 # Setup env variables for sharing between django containers and celery containers. They need basically the same ENV variables except for the Nginx specific ones.
 - set_fact:
     lc_nginx_env:
@@ -64,7 +66,7 @@
 - name: start docker container for django
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}"
-    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "{{docker_image_name}}"
     state: started
     pull: no
     recreate: true
@@ -87,7 +89,7 @@
 - name: start docker container for celery
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celery"
-    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "{{docker_image_name}}"
     state: started
     pull: no
     user: celery
@@ -112,7 +114,7 @@
 - name: start docker container for celery beat
   docker_container:
     name: "{{LEARNINGCIRCLES.DOMAIN}}-celerybeat"
-    image: "local/learning-circles:{{LEARNINGCIRCLES.BRANCH}}"
+    image: "{{docker_image_name}}"
     state: started
     pull: no
     user: celery

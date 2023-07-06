@@ -9,14 +9,13 @@
 - name: Install needed packages for docker
   apt:
     name:
-      - apt-transport-https
       - ca-certificates
       - curl
       - gnupg-agent
-      - software-properties-common
     state: latest
 
 # curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+# TODO: W: https://download.docker.com/linux/ubuntu/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
 - name: Add Docker apt key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg

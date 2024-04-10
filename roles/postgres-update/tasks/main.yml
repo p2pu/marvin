@@ -1,0 +1,36 @@
+---
+- name: dump current db
+  shell: docker exec p2pu-postgres pg_dumpall -U "{{ PG_ADMIN_USER }}" > /root/db-migrate.dump
+
+- name: start new postgres docker image
+  docker_container:
+    name: new-postgres
+    image: postgres:11
+    state: started
+    pull: yes
+    restart: yes
+    restart_policy: always
+    volumes:
+    - "/var/p2pu/volumes/postgres-11/data:/var/lib/postgresql/data"
+    env:
+      POSTGRES_USER: "{{ PG_ADMIN_USER }}"
+      POSTGRES_PASSWORD: "{{ PG_ADMIN_PASSWORD }}"
+
+# What about waiting for the db to be ready?
+# docker exec learning-circles-db-11 pg_isready
+# /var/run/postgresql:5432 - accepting connections
+
+- name: load database dump
+  shell: docker exec -i new-postgres psql -U "{{ PG_ADMIN_USER }}" < /root/db-migrate.dump
+
+- name: Remove postgres container used to migrate
+  docker_container:
+    name: new-postgres
+    image: postgres:11
+    state: absent
+    keep_volumes: yes
+
+- name: remove database dump
+  file:
+    path: /root/db-migrate.dump
+    state: absent

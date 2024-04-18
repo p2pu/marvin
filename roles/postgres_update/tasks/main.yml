@@ -26,6 +26,9 @@
 - name: load database dump
   shell: docker exec -i new-postgres psql -U "{{ PG_ADMIN_USER }}" < /root/db-migrate.dump
 
+- name: set postgres password again to ensure it uses the default encryption
+  shell: docker exec -i new-postgres psql -U "{{ PG_ADMIN_USER }}" -c "ALTER ROLE postgres WITH LOGIN PASSWORD '{{PG_ADMIN_PASSWORD}}'"
+
 - name: Remove postgres container used to migrate
   docker_container:
     name: new-postgres

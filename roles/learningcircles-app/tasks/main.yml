@@ -38,6 +38,8 @@
     login_host: "127.0.0.1"
     login_user: "{{PG_ADMIN_USER}}"
     login_password: "{{PG_ADMIN_PASSWORD}}"
+  environment:
+    PGOPTIONS: "-c password_encryption=scram-sha-256"
 
 - name: create postgres db
   postgresql_db:

@@ -12,7 +12,7 @@
 - name: start postgres docker image
   docker_container:
     name: p2pu-postgres
-    image: postgres:11
+    image: "postgres:{{VERSION}}"
     state: started
     pull: yes
     restart: yes
@@ -20,13 +20,13 @@
     ports:
     - 127.0.0.1:5432:5432
     volumes:
-    - "/var/p2pu/volumes/postgres-11/data:/var/lib/postgresql/data"
+    - "/var/p2pu/volumes/postgres-{{VERSION}}/data:/var/lib/postgresql/data"
     env:
       POSTGRES_USER: "{{ PG_ADMIN_USER }}"
       POSTGRES_PASSWORD: "{{ PG_ADMIN_PASSWORD }}"
 
 - name: wait for postgres startup
-  shell: docker run --rm --link p2pu-postgres:postgres postgres:11 pg_isready -h postgres
+  shell: "docker run --rm --link p2pu-postgres:postgres postgres:{{VERSION}} pg_isready -h postgres"
   register: result
   until: result.stdout.find("accepting connections") != -1
   retries: 10

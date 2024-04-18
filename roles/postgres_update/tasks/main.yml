@@ -5,20 +5,23 @@
 - name: start new postgres docker image
   docker_container:
     name: new-postgres
-    image: postgres:11
+    image: "postgres:{{ NEW_VERSION }}"
     state: started
     pull: yes
     restart: yes
     restart_policy: always
     volumes:
-    - "/var/p2pu/volumes/postgres-11/data:/var/lib/postgresql/data"
+    - "/var/p2pu/volumes/postgres-{{ NEW_VERSION }}/data:/var/lib/postgresql/data"
     env:
       POSTGRES_USER: "{{ PG_ADMIN_USER }}"
       POSTGRES_PASSWORD: "{{ PG_ADMIN_PASSWORD }}"
 
-# What about waiting for the db to be ready?
-# docker exec learning-circles-db-11 pg_isready
-# /var/run/postgresql:5432 - accepting connections
+- name: wait for postgres startup
+  shell: "docker run --rm --link new-postgres:postgres postgres:{{ NEW_VERSION }} pg_isready -h postgres"
+  register: result
+  until: result.stdout.find("accepting connections") != -1
+  retries: 10
+  delay: 10
 
 - name: load database dump
   shell: docker exec -i new-postgres psql -U "{{ PG_ADMIN_USER }}" < /root/db-migrate.dump
@@ -26,7 +29,7 @@
 - name: Remove postgres container used to migrate
   docker_container:
     name: new-postgres
-    image: postgres:11
+    image: "postgres:{{ NEW_VERSION }}"
     state: absent
     keep_volumes: yes
 
